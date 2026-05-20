@@ -1,0 +1,115 @@
+.root {
+  position: relative;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  text-decoration: none;
+  transition:
+    opacity 0.15s ease,
+    box-shadow 0.65s ease;
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+
+  &:active:not(.disabled) {
+    opacity: 0.85;
+    box-shadow: 0 0 0 3px var(--border-primary);
+  }
+}
+
+/* ── Sizes ── */
+
+.sizeLg {
+  padding: var(--spacing-md) var(--spacing-xl);
+}
+
+.sizeMd {
+  padding: var(--size-10) var(--size-18);
+}
+
+.sizeSm {
+  padding: var(--size-10);
+}
+
+.sizeXs {
+  padding: 0;
+}
+
+/* ── Variants ── */
+
+.variantPrimary {
+  color: var(--text-base);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+
+  &:hover:not(.disabled) {
+    opacity: 0.9;
+  }
+}
+
+.variantSecondary {
+  color: var(--text-label);
+  background: var(--background-primary);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+
+  &:hover:not(.disabled) {
+    background: var(--background-secondary);
+  }
+}
+
+.variantTransparent {
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0;
+
+  &:hover:not(.disabled) {
+    opacity: 0.75;
+  }
+
+  &.disabled {
+    background: transparent;
+    border-color: transparent;
+  }
+}
+
+/* ── Disabled ── */
+
+.disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+  background: var(--border-secondary);
+  color: var(--text-secondary);
+  border-color: var(--border-secondary);
+}
+
+/* ── Loading ── */
+
+.loading {
+  cursor: wait;
+}
+
+.contentHidden {
+  visibility: hidden;
+}
+
+.spinner {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 1em;
+  height: 1em;
+}
+
+/* ── Icon wrapper ── */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}

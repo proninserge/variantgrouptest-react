@@ -1,0 +1,29 @@
+@mixin content-width {
+  width: 100%;
+  max-width: var(--width-content);
+  margin-inline: auto;
+}
+
+@mixin centered-content-rubber-padding {
+  padding-inline: max(var(--spacing-md), calc((100% - var(--width-content)) / 2));
+}
+
+@mixin page-layout {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "scroll"
+    "bottom";
+  height: 100%;
+}
+
+@mixin page-scroll-area {
+  grid-area: scroll;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@mixin page-sticky-bottom {
+  grid-area: bottom;
+}

@@ -1,0 +1,47 @@
+@use "@/shared/styles/breakpoints" as *;
+@use "@/shared/styles/layout" as *;
+
+.root {
+  padding-block: var(--spacing-2xl);
+  @include centered-content-rubber-padding;
+  background-color: var(--background-primary);
+}
+
+.left {
+  flex: 1;
+  padding-block: var(--size-2);
+}
+
+.right {
+  flex-shrink: 0;
+}
+
+.dotsContainer {
+  flex-shrink: 0;
+}
+
+.logomark {
+  width: 44px;
+  height: 44px;
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.logotype {
+  display: none;
+  width: 122px;
+  height: 22px;
+  color: var(--gray-900);
+
+  @include lg-up {
+    display: block;
+  }
+}
+
+.labelText {
+  display: none;
+
+  @include md-up {
+    display: inline;
+  }
+}

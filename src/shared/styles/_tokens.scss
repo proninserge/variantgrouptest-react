@@ -1,0 +1,252 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Primitives
+// ─────────────────────────────────────────────────────────────────────────────
+@use "breakpoints" as *;
+
+:root {
+  /* ── Color ── */
+
+  --gray-900: #101828;
+  --gray-700: #344054;
+  --gray-600: #475467;
+  --gray-500: #667085;
+  --gray-300: #d0d5dd;
+  --gray-200: #eaecf0;
+  --gray-100: #f2f4f7;
+  --white: #ffffff;
+
+  --green-700: #087443;
+  --green-600: #099250;
+  --green-500: #12b76a;
+  --green-400: #73e2a3;
+  --green-200: #d1fadf;
+  --green-100: #d3f8df;
+  --green-50: #edfcf2;
+
+  --red-400: #f04438;
+  --red-200: #fda29b;
+  --red-100: #fee4e2;
+
+  --alpha-gray-900-24: rgba(16, 24, 40, 0.24);
+  --alpha-gray-100-0: rgba(242, 244, 247, 0);
+  --alpha-shadow-xs: rgba(16, 24, 40, 0.05);
+
+  /* ── Size ── */
+
+  /* ── Mobile (-2px from desktop) ── */
+
+  --size-2: 0;
+  --size-4: 2px;
+  --size-6: 4px;
+  --size-8: 6px;
+  --size-10: 8px;
+  --size-12: 10px;
+  --size-14: 12px;
+  --size-16: 14px;
+  --size-18: 16px;
+  --size-20: 18px;
+  --size-24: 22px;
+  --size-28: 26px;
+  --size-32: 30px;
+  --size-48: 46px;
+  --size-54: 52px;
+  --size-64: 62px;
+  --size-120: 118px;
+  --size-160: 158px;
+
+  /* ── Desktop (per figma) ── */
+
+  @include lg-up {
+    --size-2: 2px;
+    --size-4: 4px;
+    --size-6: 6px;
+    --size-8: 8px;
+    --size-10: 10px;
+    --size-12: 12px;
+    --size-14: 14px;
+    --size-16: 16px;
+    --size-18: 18px;
+    --size-20: 20px;
+    --size-24: 24px;
+    --size-28: 28px;
+    --size-32: 32px;
+    --size-48: 48px;
+    --size-54: 54px;
+    --size-64: 64px;
+    --size-120: 120px;
+    --size-160: 160px;
+  }
+
+  /* ── Spacing ── */
+
+  --spacing-3xs: var(--size-4);
+  --spacing-2xs: var(--size-6);
+  --spacing-xs: var(--size-8);
+  --spacing-sm: var(--size-12);
+  --spacing-md: var(--size-16);
+  --spacing-lg: var(--size-24);
+  --spacing-xl: var(--size-28);
+  --spacing-2xl: var(--size-32);
+  --spacing-3xl: var(--size-48);
+  --spacing-4xl: var(--size-54);
+  --spacing-5xl: var(--size-64);
+  --spacing-6xl: var(--size-120);
+  --spacing-7xl: var(--size-160);
+
+  /* ── Layout ── */
+
+  --width-content-limit-xs: 480px;
+
+  --width-content: 1120px;
+
+  /* ── Radius ── */
+
+  --radius-sm: var(--size-4);
+  --radius-md: var(--size-6);
+  --radius-lg: var(--size-8);
+  --radius-xl: var(--size-12);
+
+  /* ── Typography ── */
+
+  --font-display: "Fixel Display", system-ui, sans-serif;
+  --font-text: "Fixel Text", system-ui, sans-serif;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --letter-spacing-normal: 0;
+  --letter-spacing-tight: -0.02em;
+
+  /* ── Mobile (-4px from desktop / -10px for headings) ── */
+
+  --font-size-xs: 10px;
+  --line-height-xs: 16px;
+
+  --font-size-sm: 12px;
+  --line-height-sm: 20px;
+
+  --font-size-md: 14px;
+  --line-height-md: 24px;
+
+  --font-size-h1: 38px;
+  --line-height-h1: 50px;
+
+  --font-size-h2: 26px;
+  --line-height-h2: 34px;
+
+  /* ── Desktop (per figma) ── */
+
+  @include lg-up {
+    --font-size-xs: 14px;
+    --line-height-xs: 20px;
+
+    --font-size-sm: 16px;
+    --line-height-sm: 24px;
+
+    --font-size-md: 18px;
+    --line-height-md: 28px;
+
+    --font-size-h1: 48px;
+    --line-height-h1: 60px;
+
+    --font-size-h2: 36px;
+    --line-height-h2: 44px;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Light theme
+// ─────────────────────────────────────────────────────────────────────────────
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* ── Text ── */
+
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-500);
+  --text-tertiary: var(--gray-600);
+  --text-label: var(--gray-700);
+  --text-base: var(--white);
+  --text-error: var(--red-400);
+
+  /* ── Background ── */
+
+  --background-primary: var(--white);
+  --background-secondary: var(--gray-100);
+
+  /* ── Border ── */
+
+  --border-primary: var(--gray-200);
+  --border-secondary: var(--gray-300);
+  --border-focus: var(--green-400);
+  --border-error: var(--red-200);
+
+  /* ── Brand ── */
+
+  --accent: var(--green-700);
+  --brand: var(--green-600);
+
+  /* ── Component ── */
+
+  --progress-active: var(--gray-900);
+  --progress-inactive: var(--alpha-gray-900-24);
+
+  /* ── Shadow ── */
+
+  --shadow-xs: 0 1px 2px var(--alpha-shadow-xs);
+  --shadow-focus: var(--shadow-xs), 0 0 0 4px var(--green-100);
+  --shadow-error: var(--shadow-xs), 0 0 0 4px var(--red-100);
+
+  /* ── Gradient ── */
+
+  --gradient-card-fade: linear-gradient(180deg, var(--alpha-gray-100-0) 0%, var(--gray-100) 100%);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dark theme (random values, added for reference, to be overridden)
+// ─────────────────────────────────────────────────────────────────────────────
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* ── Text ── */
+
+  --text-primary: var(--white);
+  --text-secondary: var(--gray-300);
+  --text-tertiary: var(--gray-500);
+  --text-label: var(--gray-200);
+  --text-base: var(--gray-900);
+  --text-error: var(--red-400);
+
+  /* ── Background ── */
+
+  --background-primary: var(--gray-900);
+  --background-secondary: var(--gray-700);
+
+  /* ── Border ── */
+
+  --border-primary: var(--gray-700);
+  --border-secondary: var(--gray-600);
+  --border-focus: var(--green-400);
+  --border-error: var(--red-200);
+
+  /* ── Brand ── */
+
+  --accent: var(--green-700);
+  --brand: var(--green-600);
+
+  /* ── Component ── */
+
+  --progress-active: var(--gray-300);
+  --progress-inactive: var(--gray-600);
+
+  /* ── Shadow ── */
+
+  --shadow-xs: 0 1px 2px var(--alpha-shadow-xs);
+  --shadow-focus: var(--shadow-xs), 0 0 0 4px var(--green-400);
+  --shadow-error: var(--shadow-xs), 0 0 0 4px var(--red-400);
+
+  /* ── Gradient ── */
+
+  --gradient-card-fade: linear-gradient(180deg, var(--alpha-gray-100-0) 0%, var(--gray-700) 100%);
+}

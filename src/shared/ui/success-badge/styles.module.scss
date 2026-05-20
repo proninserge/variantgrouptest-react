@@ -1,0 +1,11 @@
+.root {
+  width: var(--size-28);
+  height: var(--size-28);
+  border-radius: 50%;
+  background-color: var(--green-200);
+  flex-shrink: 0;
+}
+
+.icon {
+  color: var(--green-500);
+}

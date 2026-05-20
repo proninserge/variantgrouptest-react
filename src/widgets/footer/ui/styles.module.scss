@@ -1,0 +1,8 @@
+@use "@/shared/styles/layout" as *;
+
+.footer {
+  width: 100%;
+  height: var(--spacing-4xl);
+  @include centered-content-rubber-padding;
+  background-color: var(--background-primary);
+}

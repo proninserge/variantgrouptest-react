@@ -1,0 +1,23 @@
+@use "@/shared/styles/layout" as *;
+@use "@/shared/styles/breakpoints" as *;
+
+.page {
+  min-height: 100%;
+  @include centered-content-rubber-padding;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-2xl);
+
+  @include lg-up {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.output {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}

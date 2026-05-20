@@ -1,0 +1,30 @@
+// Mobile-first
+
+$bp-sm: 480px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+
+@mixin sm-up {
+  @media (min-width: $bp-sm) {
+    @content;
+  }
+}
+
+@mixin md-up {
+  @media (min-width: $bp-md) {
+    @content;
+  }
+}
+
+@mixin lg-up {
+  @media (min-width: $bp-lg) {
+    @content;
+  }
+}
+
+@mixin xl-up {
+  @media (min-width: $bp-xl) {
+    @content;
+  }
+}

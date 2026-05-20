@@ -1,0 +1,17 @@
+@use "breakpoints" as *;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-text);
+}
+
+:root {
+  background: var(--background-primary);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}

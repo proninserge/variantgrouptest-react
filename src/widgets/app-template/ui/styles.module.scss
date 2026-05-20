@@ -1,0 +1,44 @@
+@use "@/shared/styles/breakpoints" as *;
+@use "@/shared/styles/layout" as *;
+
+.layout {
+  width: 100%;
+
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "header"
+    "main"
+    "footer";
+  height: 100vh;
+  height: 100dvh;
+}
+
+.layoutHeader {
+  grid-area: header;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.layoutMain {
+  grid-area: main;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none; /* Firefox */
+  display: grid;
+  grid-template-rows: 1fr;
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+  }
+}
+
+.layoutFooter {
+  grid-area: footer;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+}

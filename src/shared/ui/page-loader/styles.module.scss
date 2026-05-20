@@ -1,0 +1,12 @@
+.root {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.icon {
+  width: var(--spacing-6xl) !important;
+  height: var(--spacing-6xl) !important;
+  color: var(--accent);
+}

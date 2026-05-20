@@ -1,0 +1,56 @@
+/* ── Input ── */
+
+.input {
+  width: 100%;
+  font-family: var(--font-text);
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-regular);
+  box-shadow: var(--shadow-xs);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: var(--text-secondary);
+  }
+
+  &:focus {
+    border-color: var(--border-focus);
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.labelText {
+  line-height: var(--line-height-xs);
+}
+
+/* ── Size ── */
+
+.sizeSm {
+  height: calc(var(--line-height-sm) + 2 * var(--spacing-xs));
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+/* ── Variant: error ── */
+
+.variantError {
+  border-color: var(--border-error);
+
+  &:focus {
+    border-color: var(--border-error);
+    box-shadow: var(--shadow-error);
+  }
+}
+
+/* ── State: disabled ── */
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

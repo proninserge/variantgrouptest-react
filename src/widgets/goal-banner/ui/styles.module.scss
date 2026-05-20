@@ -1,0 +1,11 @@
+.root {
+  width: 100%;
+  padding: var(--spacing-4xl) var(--spacing-5xl);
+  background-color: var(--green-50);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.container {
+  max-width: var(--width-content-limit-xs);
+}

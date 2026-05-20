@@ -1,0 +1,9 @@
+@use "@/shared/styles/breakpoints" as *;
+
+.label {
+  display: none;
+
+  @include md-up {
+    display: inline;
+  }
+}

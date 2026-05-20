@@ -1,0 +1,31 @@
+@use "@/shared/styles/breakpoints" as *;
+
+.form {
+  padding-top: var(--spacing-md);
+  width: 100%;
+}
+
+.rowInput {
+  flex: 1 1 100%;
+
+  @include lg-up {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+.submitButton {
+  width: 100%;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

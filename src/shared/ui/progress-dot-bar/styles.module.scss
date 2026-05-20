@@ -1,0 +1,29 @@
+/* ── Item base ── */
+
+.item {
+  display: block;
+  background-color: var(--progress-inactive);
+  transition: background-color 0.2s ease;
+}
+
+.itemFilled {
+  background-color: var(--progress-active);
+}
+
+/* ── Variants ── */
+
+.variantDots {
+  .item {
+    width: var(--size-8);
+    height: var(--size-8);
+    border-radius: 50%;
+  }
+}
+
+.variantLines {
+  .item {
+    width: var(--size-32);
+    height: var(--size-8);
+    border-radius: var(--radius-sm);
+  }
+}
