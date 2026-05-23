@@ -12,18 +12,15 @@ export const APPLICATIONS_STORAGE_KEY = 'applications';
 
 interface ApplicationStore {
   applications: Application[];
-  addApplication: (application: Application) => void;
   removeApplication: (id: string) => void;
   markApplicationPending: (application: Application) => void;
   updateApplication: (application: Application) => void;
-  resetApplicationToPending: (id: string) => void;
 }
 
 const isCompleted = (application: Application): boolean => application.application !== null;
 
 type PersistedApplicationStore = Pick<ApplicationStore, 'applications'>;
 
-// Pending живёт только в памяти; при rehydrate нельзя затирать его persisted-списком.
 function mergePersistedState(persisted: unknown, current: ApplicationStore): ApplicationStore {
   const persistedApps = (persisted as PersistedApplicationStore | undefined)?.applications ?? [];
   const pendingApps = current.applications.filter((a) => a.application === null);
@@ -35,7 +32,6 @@ function mergePersistedState(persisted: unknown, current: ApplicationStore): App
   };
 }
 
-// До persist данные лежали в localStorage как Application[].
 const storage = createJSONStorage<Pick<ApplicationStore, 'applications'>>(() => ({
   getItem: (name) => {
     const value = localStorage.getItem(name);
@@ -55,8 +51,12 @@ const storage = createJSONStorage<Pick<ApplicationStore, 'applications'>>(() => 
 
     return value;
   },
-  setItem: (name, value) => { localStorage.setItem(name, value); },
-  removeItem: (name) => { localStorage.removeItem(name); },
+  setItem: (name, value) => {
+    localStorage.setItem(name, value);
+  },
+  removeItem: (name) => {
+    localStorage.removeItem(name);
+  },
 }));
 
 export const selectCompletedCount = (s: ApplicationStore): number =>
@@ -69,12 +69,6 @@ export const useApplicationStore = create<ApplicationStore>()(
   persist(
     (set) => ({
       applications: [],
-      addApplication: (application) => {
-        set((state) => {
-          if (state.applications.some((a) => a.id === application.id)) return state;
-          return { applications: [...state.applications, application] };
-        });
-      },
       removeApplication: (id) => {
         set((state) => ({
           applications: state.applications.filter((a) => a.id !== id),
@@ -110,13 +104,6 @@ export const useApplicationStore = create<ApplicationStore>()(
 
           return { applications: [...state.applications, application] };
         });
-      },
-      resetApplicationToPending: (id) => {
-        set((state) => ({
-          applications: state.applications.map((a) =>
-            a.id === id ? { ...a, application: null } : a,
-          ),
-        }));
       },
     }),
     {

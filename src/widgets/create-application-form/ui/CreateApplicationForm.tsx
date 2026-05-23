@@ -4,11 +4,7 @@ import { useEffect, useId, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 
 import type { GenerateApplicationFormValues } from '@/features/generate-application';
-import {
-  generateApplicationSchema,
-  useGenerationActions,
-  useGenerationStore,
-} from '@/features/generate-application';
+import { generateApplicationSchema, useGenerateApplication } from '@/features/generate-application';
 import { Button } from '@/shared/ui/button';
 import { Icon, RepeatIcon } from '@/shared/ui/Icon';
 import { Input } from '@/shared/ui/input';
@@ -21,14 +17,12 @@ export function CreateApplicationForm(): ReactElement {
   const formId = useId();
   const firstInputRef = useRef<HTMLInputElement | null>(null);
 
-  const generationStatus = useGenerationStore((s) => s.status);
-  const resetSignal = useGenerationStore((s) => s.resetSignal);
-  const { startGeneration } = useGenerationActions();
+  const { status, formResetKey, startGeneration } = useGenerateApplication();
 
-  const isGenerating = generationStatus === 'generating';
-  const isGenerated = generationStatus === 'success' || generationStatus === 'error';
+  const isGenerating = status === 'generating';
+  const isGenerated = status === 'success' || status === 'error';
 
-  const hasGeneratedOnce = generationStatus !== 'idle';
+  const hasGeneratedOnce = status !== 'idle';
 
   const {
     register,
@@ -46,12 +40,11 @@ export function CreateApplicationForm(): ReactElement {
     },
   });
 
-  // Если вызывается извне
   useEffect(() => {
-    if (resetSignal === 0) return;
+    if (formResetKey === 0) return;
     reset();
     firstInputRef.current?.focus();
-  }, [resetSignal, reset]);
+  }, [formResetKey, reset]);
 
   const onSubmit = (values: GenerateApplicationFormValues) => {
     startGeneration(values);
@@ -62,9 +55,9 @@ export function CreateApplicationForm(): ReactElement {
 
   const statusMessage = isGenerating
     ? 'Generating your application, please wait…'
-    : generationStatus === 'success'
+    : status === 'success'
       ? 'Application generated successfully'
-      : generationStatus === 'error'
+      : status === 'error'
         ? 'Generation failed, please try again'
         : '';
 

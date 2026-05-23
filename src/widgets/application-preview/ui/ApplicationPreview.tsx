@@ -1,7 +1,7 @@
 import { type ReactElement, useEffect, useRef } from 'react';
 
 import { CopyApplicationButton } from '@/features/copy-application';
-import { type GenerationStatus, useGenerationStore } from '@/features/generate-application';
+import { type GenerationStatus, useGenerateApplication } from '@/features/generate-application';
 import { Anchors } from '@/shared/config';
 import { HStack, VStack } from '@/shared/ui/stack';
 import { Typography } from '@/shared/ui/typography';
@@ -18,9 +18,6 @@ function PreviewBody({ status, content, error }: PreviewBodyProps): ReactElement
   if (status === 'generating') {
     return (
       <HStack justify="center" align="center" className={styles.loaderWrapper}>
-        {/* При необходимости можно вынести
-        В проекте уже есть лоадер, который можно переиспользовать
-        Данный компонент выглядит как местный лоадер */}
         <div className={styles.ball} role="status" aria-label="Loading" />
       </HStack>
     );
@@ -50,9 +47,7 @@ function PreviewBody({ status, content, error }: PreviewBodyProps): ReactElement
 }
 
 export function ApplicationPreview(): ReactElement {
-  const status = useGenerationStore((s) => s.status);
-  const generatedContent = useGenerationStore((s) => s.generatedContent);
-  const error = useGenerationStore((s) => s.error);
+  const { status, generatedContent, error } = useGenerateApplication();
 
   const rootRef = useRef<HTMLElement>(null);
 

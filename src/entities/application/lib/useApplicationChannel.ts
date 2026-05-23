@@ -4,7 +4,6 @@ import { useApplicationStore } from '../model/store';
 import type { ChannelMessage } from './channel';
 import { CHANNEL_NAME, TAB_ID } from './channel';
 
-// Получение сообщений из канала
 export function useApplicationChannel(): void {
   const markApplicationPending = useApplicationStore((s) => s.markApplicationPending);
   const removeApplication = useApplicationStore((s) => s.removeApplication);
@@ -38,6 +37,3 @@ export function useApplicationChannel(): void {
     };
   }, [markApplicationPending, updateApplication, removeApplication]);
 }
-
-// Получение сообщений из канала через BroadcastChannel API
-// В приложении такого типа считаю целесообразным добавление такого UX

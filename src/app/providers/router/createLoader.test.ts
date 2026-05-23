@@ -38,14 +38,6 @@ describe('createRouteLoader', () => {
     expect(redirect).toHaveBeenCalledWith(RoutePaths.home);
   });
 
-  it('redirects to home when generation is in progress (pending app exists)', () => {
-    // A pending app is added synchronously in onMutate before the fetch starts,
-    // so this case is equivalent to the previous test.
-    useApplicationStore.setState({ applications: [PENDING_APP] });
-    createRouteLoader();
-    expect(redirect).toHaveBeenCalledWith(RoutePaths.home);
-  });
-
   it('does not redirect when all applications are completed', () => {
     useApplicationStore.setState({ applications: [COMPLETED_APP] });
     expect(createRouteLoader()).toBeNull();

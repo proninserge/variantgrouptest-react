@@ -7,12 +7,11 @@ export type ChannelMessage =
 
 export const CHANNEL_NAME = 'applications';
 
-// Явно ссылаться на вкладку
 export const TAB_ID = crypto.randomUUID();
 
 let _sender: BroadcastChannel | null = null;
 
-// Создается при первом вызове экшена и живет все время страницы чтобы в случае чего передавать сообщения
+// It is created at the first action call and lives until the tab is closed
 function getSender(): BroadcastChannel {
   _sender ??= new BroadcastChannel(CHANNEL_NAME);
   return _sender;

@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import type { ReactElement } from 'react';
 
-import { useGenerationStore } from '@/features/generate-application';
+import { useGenerateApplication } from '@/features/generate-application';
 import { HStack } from '@/shared/ui/stack';
 import { Typography } from '@/shared/ui/typography';
 
@@ -12,8 +12,7 @@ type CreateHeaderProps = {
 };
 
 export function CreateHeader({ className }: CreateHeaderProps): ReactElement {
-  const formValues = useGenerationStore((s) => s.formValues);
-  const status = useGenerationStore((s) => s.status);
+  const { formValues, status } = useGenerateApplication();
 
   const isFilled = status !== 'idle' && formValues !== null;
   const title = isFilled ? `${formValues.jobTitle}, ${formValues.companyName}` : 'New application';
@@ -38,6 +37,3 @@ export function CreateHeader({ className }: CreateHeaderProps): ReactElement {
     </HStack>
   );
 }
-
-// Кажется для UX достаточно менять заголовок при старте генерации
-// Так будет очевидно какое письмо генерируется

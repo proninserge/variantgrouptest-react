@@ -12,5 +12,3 @@ export const useUserStore = create<UserStore>((set) => ({
     set({ applicationGoal });
   },
 }));
-
-// Добавил на случай появления авторизации, подписок, промо и т.д.

@@ -6,5 +6,3 @@ export interface Application {
   additionalDetails: string;
   application: string | null;
 }
-
-// Статус ПЕНДИНГ - означает что application поле null, письмо не сгенерировано

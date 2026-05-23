@@ -6,7 +6,7 @@ import styles from './styles.module.scss';
 
 export function PageLoader(): ReactElement {
   return (
-    <div className={styles.root} role="status" aria-label="Загрузка страницы">
+    <div className={styles.root} role="status" aria-label="Page loading">
       <Loader className={styles.icon} />
     </div>
   );

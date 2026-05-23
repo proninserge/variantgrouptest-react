@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router';
 
 import { selectCompletedCount, useApplicationStore } from '@/entities/application';
 import { useUserStore } from '@/entities/user';
-import { useGenerationActions } from '@/features/generate-application';
+import { useGenerateApplication } from '@/features/generate-application';
 import { Anchors } from '@/shared/config';
 import { VStack } from '@/shared/ui/stack';
 import { ApplicationPreview } from '@/widgets/application-preview';
@@ -24,7 +24,7 @@ export function CreateApplicationPage(): ReactElement {
 
   const applicationsCount = useApplicationStore(selectCompletedCount);
   const applicationGoal = useUserStore((s) => s.applicationGoal);
-  const { triggerReset } = useGenerationActions();
+  const { triggerReset } = useGenerateApplication();
 
   const showBanner = applicationsCount < applicationGoal;
   const locationState = location.state as CreatePageLocationState;

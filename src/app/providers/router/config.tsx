@@ -36,8 +36,7 @@ export const routerConfig: RouteObjectExt[] = [
       {
         path: RoutePaths.create,
         route: Routes.create,
-        // Дополнительная необязательная защита роута при генерации
-        // Допустимо убрать, багов при одновременной генерации на нескольких вкладках быть не должно
+        // Might be removed, just an additional protection
         loader: createRouteLoader,
         element: <CreateApplicationPage />,
       },

@@ -1,18 +1,27 @@
 import { createContext, useContext } from 'react';
 
-import type { GenerateApplicationFormValues } from './types';
+import type { GenerateApplicationFormValues, GenerationStatus } from './types';
 
-export interface GenerationActionsContextValue {
+export interface GenerateApplicationContextValue {
+  status: GenerationStatus;
+  formValues: GenerateApplicationFormValues | null;
+  generatedContent: string | null;
+  error: string | null;
+  formResetKey: number;
   startGeneration: (values: GenerateApplicationFormValues) => void;
   triggerReset: () => void;
 }
 
-export const GenerationActionsContext = createContext<GenerationActionsContextValue | null>(null);
+export const GenerateApplicationContext = createContext<GenerateApplicationContextValue | null>(
+  null,
+);
 
-export function useGenerationActions(): GenerationActionsContextValue {
-  const context = useContext(GenerationActionsContext);
+export function useGenerateApplication(): GenerateApplicationContextValue {
+  const context = useContext(GenerateApplicationContext);
+
   if (!context) {
-    throw new Error('useGenerationActions must be used within ApplicationGenerationProvider');
+    throw new Error('useGenerateApplication must be used within ApplicationGenerationProvider');
   }
+
   return context;
 }

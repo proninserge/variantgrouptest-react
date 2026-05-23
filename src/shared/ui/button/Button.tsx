@@ -30,9 +30,7 @@ type AsButton = ButtonHTMLAttributes<HTMLButtonElement> & SharedProps & { as?: '
 type AsAnchor = AnchorHTMLAttributes<HTMLAnchorElement> & SharedProps & { as: 'a' };
 type AsLink = ComponentPropsWithoutRef<typeof Link> & SharedProps & { as: typeof Link };
 
-// Кнопка с текстом: aria-label опционален
 type WithChildren = { children: ReactNode };
-// Кнопка только с иконкой: aria-label обязателен, иначе нет доступного имени
 type IconOnly = { children?: never; 'aria-label': string };
 
 type ButtonProps = (AsButton | AsAnchor | AsLink) & (WithChildren | IconOnly);
