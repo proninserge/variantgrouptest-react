@@ -1,68 +1,131 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { applicationStorage } from '../lib/storage';
 import type { Application } from './types';
+
+// Sync model:
+// - Completed applications → localStorage via persist (partialize).
+// - Pending applications → memory only; synced across tabs via BroadcastChannel.
+// - merge() keeps in-memory pending entries when rehydrate loads persisted completed list.
+
+export const APPLICATIONS_STORAGE_KEY = 'applications';
 
 interface ApplicationStore {
   applications: Application[];
-  setApplications: (applications: Application[]) => void;
   addApplication: (application: Application) => void;
   removeApplication: (id: string) => void;
-  dropApplication: (id: string) => void;
-  persistApplication: (application: Application) => void;
+  markApplicationPending: (application: Application) => void;
+  updateApplication: (application: Application) => void;
   resetApplicationToPending: (id: string) => void;
 }
 
+const isCompleted = (application: Application): boolean => application.application !== null;
+
+type PersistedApplicationStore = Pick<ApplicationStore, 'applications'>;
+
+// Pending живёт только в памяти; при rehydrate нельзя затирать его persisted-списком.
+function mergePersistedState(persisted: unknown, current: ApplicationStore): ApplicationStore {
+  const persistedApps = (persisted as PersistedApplicationStore | undefined)?.applications ?? [];
+  const pendingApps = current.applications.filter((a) => a.application === null);
+  const persistedIds = new Set(persistedApps.map((a) => a.id));
+
+  return {
+    ...current,
+    applications: [...persistedApps, ...pendingApps.filter((a) => !persistedIds.has(a.id))],
+  };
+}
+
+// До persist данные лежали в localStorage как Application[].
+const storage = createJSONStorage<Pick<ApplicationStore, 'applications'>>(() => ({
+  getItem: (name) => {
+    const value = localStorage.getItem(name);
+    if (!value) return null;
+
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return JSON.stringify({
+          state: { applications: parsed.filter(isCompleted) },
+          version: 0,
+        });
+      }
+    } catch {
+      return null;
+    }
+
+    return value;
+  },
+  setItem: (name, value) => { localStorage.setItem(name, value); },
+  removeItem: (name) => { localStorage.removeItem(name); },
+}));
+
 export const selectCompletedCount = (s: ApplicationStore): number =>
-  s.applications.filter((a) => a.application !== null).length;
+  s.applications.filter(isCompleted).length;
 
 export const selectHasPending = (s: ApplicationStore): boolean =>
   s.applications.some((a) => a.application === null);
 
-export const useApplicationStore = create<ApplicationStore>((set) => ({
-  applications: [],
-  // Устанавливает список писем в стор
-  setApplications: (applications) => {
-    set({ applications });
-  },
-  // Добавляет письмо в стор
-  addApplication: (application) => {
-    set((state) => {
-      if (state.applications.some((a) => a.id === application.id)) return state;
-      return { applications: [...state.applications, application] };
-    });
-  },
-  // Удаляет письмо из стора и из localStorage
-  removeApplication: (id) => {
-    set((state) => {
-      applicationStorage.remove(id, state.applications);
-      return { applications: state.applications.filter((a) => a.id !== id) };
-    });
-  },
-  // Удаляет письмо из стора, но не из localStorage
-  dropApplication: (id) => {
-    set((state) => ({
-      applications: state.applications.filter((a) => a.id !== id),
-    }));
-  },
-  // Сохраняет письмо в сторе и в localStorage
-  persistApplication: (application) => {
-    set((state) => {
-      const next = state.applications.map((a) => (a.id === application.id ? application : a));
-      applicationStorage.save(application, state.applications);
-      return { applications: next };
-    });
-  },
-  // Устанавливает письмо в статус pending в сторе
-  resetApplicationToPending: (id) => {
-    set((state) => ({
-      applications: state.applications.map((a) => (a.id === id ? { ...a, application: null } : a)),
-    }));
-  },
-}));
+export const useApplicationStore = create<ApplicationStore>()(
+  persist(
+    (set) => ({
+      applications: [],
+      addApplication: (application) => {
+        set((state) => {
+          if (state.applications.some((a) => a.id === application.id)) return state;
+          return { applications: [...state.applications, application] };
+        });
+      },
+      removeApplication: (id) => {
+        set((state) => ({
+          applications: state.applications.filter((a) => a.id !== id),
+        }));
+      },
+      markApplicationPending: (application) => {
+        set((state) => {
+          const exists = state.applications.some((a) => a.id === application.id);
 
-// Статус ПЕНДИНГ - означает что application поле null
-// Установка уже сгенерированного письма в ПЕНДИНГ убирает это письмо из списка завершенных писем
-// Завершенные письма для отображения в Баннере и Хедере берется из стора
-// Если перегенерируемое письмо успешно - перезапись в стор и локал сторедж по ИД
-// Если перегенерируемое письмо с ошибкой - удаление письмо отовсюду
+          if (exists) {
+            return {
+              applications: state.applications.map((a) =>
+                a.id === application.id ? { ...a, application: null } : a,
+              ),
+            };
+          }
+
+          return { applications: [...state.applications, application] };
+        });
+      },
+      // Upsert: covers cross-tab/rehydrate edge cases where completed app is missing in memory.
+      updateApplication: (application) => {
+        set((state) => {
+          const exists = state.applications.some((a) => a.id === application.id);
+
+          if (exists) {
+            return {
+              applications: state.applications.map((a) =>
+                a.id === application.id ? application : a,
+              ),
+            };
+          }
+
+          return { applications: [...state.applications, application] };
+        });
+      },
+      resetApplicationToPending: (id) => {
+        set((state) => ({
+          applications: state.applications.map((a) =>
+            a.id === id ? { ...a, application: null } : a,
+          ),
+        }));
+      },
+    }),
+    {
+      name: APPLICATIONS_STORAGE_KEY,
+      storage,
+      partialize: (state) => ({
+        applications: state.applications.filter(isCompleted),
+      }),
+      merge: mergePersistedState,
+    },
+  ),
+);

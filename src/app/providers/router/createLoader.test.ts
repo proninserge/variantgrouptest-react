@@ -4,10 +4,6 @@ vi.mock('react-router', () => ({
   redirect: vi.fn((path: string) => ({ _redirect: path })),
 }));
 
-vi.mock('@/entities/application/lib/storage', () => ({
-  applicationStorage: { getAll: vi.fn(() => []), save: vi.fn(), remove: vi.fn() },
-}));
-
 import { redirect } from 'react-router';
 
 import { useApplicationStore } from '@/entities/application';

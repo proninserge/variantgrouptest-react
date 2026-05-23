@@ -1,16 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-// Mock storage to keep tests isolated from localStorage side effects
-vi.mock('../lib/storage', () => ({
-  applicationStorage: {
-    getAll: vi.fn(() => []),
-    save: vi.fn(),
-    remove: vi.fn(),
-  },
-}));
-
-import { applicationStorage } from '../lib/storage';
-import { selectCompletedCount, selectHasPending, useApplicationStore } from './store';
+import {
+  APPLICATIONS_STORAGE_KEY,
+  selectCompletedCount,
+  selectHasPending,
+  useApplicationStore,
+} from './store';
 import type { Application } from './types';
 
 const makeApp = (id: string, content: string | null = 'letter'): Application => ({
@@ -22,9 +17,17 @@ const makeApp = (id: string, content: string | null = 'letter'): Application => 
   application: content,
 });
 
+function getPersistedApplications(): Application[] {
+  const raw = localStorage.getItem(APPLICATIONS_STORAGE_KEY);
+  if (!raw) return [];
+
+  const parsed = JSON.parse(raw) as { state?: { applications?: Application[] } };
+  return parsed.state?.applications ?? [];
+}
+
 beforeEach(() => {
+  localStorage.clear();
   useApplicationStore.setState({ applications: [] });
-  vi.clearAllMocks();
 });
 
 describe('selectHasPending', () => {
@@ -72,6 +75,22 @@ describe('selectCompletedCount', () => {
   });
 });
 
+describe('markApplicationPending', () => {
+  it('adds a new pending application', () => {
+    useApplicationStore.getState().markApplicationPending(makeApp('1', null));
+    expect(useApplicationStore.getState().applications).toEqual([makeApp('1', null)]);
+  });
+
+  it('resets an existing application to pending', () => {
+    useApplicationStore.setState({ applications: [makeApp('1', 'content')] });
+
+    useApplicationStore.getState().markApplicationPending(makeApp('1', null));
+
+    expect(useApplicationStore.getState().applications).toEqual([makeApp('1', null)]);
+    expect(getPersistedApplications()).toHaveLength(0);
+  });
+});
+
 describe('addApplication', () => {
   it('adds an application to the store', () => {
     useApplicationStore.getState().addApplication(makeApp('1'));
@@ -93,39 +112,31 @@ describe('removeApplication', () => {
     expect(ids).toEqual(['2']);
   });
 
-  it('calls applicationStorage.remove', () => {
-    useApplicationStore.setState({ applications: [makeApp('1')] });
+  it('removes completed application from localStorage', () => {
+    useApplicationStore.setState({ applications: [makeApp('1', 'content')] });
+    expect(getPersistedApplications()).toHaveLength(1);
+
     useApplicationStore.getState().removeApplication('1');
-    expect(applicationStorage.remove).toHaveBeenCalledWith('1', expect.any(Array));
+    expect(getPersistedApplications()).toHaveLength(0);
   });
 });
 
-describe('persistApplication', () => {
+describe('updateApplication', () => {
   it('updates an existing application in the store', () => {
     useApplicationStore.setState({ applications: [makeApp('1', null)] });
     const updated = makeApp('1', 'generated letter content');
-    useApplicationStore.getState().persistApplication(updated);
+    useApplicationStore.getState().updateApplication(updated);
     expect(useApplicationStore.getState().applications[0].application).toBe(
       'generated letter content',
     );
   });
 
-  it('calls applicationStorage.save', () => {
+  it('persists completed applications to localStorage', () => {
     useApplicationStore.setState({ applications: [makeApp('1', null)] });
-    useApplicationStore.getState().persistApplication(makeApp('1', 'content'));
-    expect(applicationStorage.save).toHaveBeenCalledWith(
-      expect.objectContaining({ id: '1' }),
-      expect.any(Array),
-    );
-  });
-});
-
-describe('dropApplication', () => {
-  it('removes from the store without touching storage', () => {
-    useApplicationStore.setState({ applications: [makeApp('1'), makeApp('2')] });
-    useApplicationStore.getState().dropApplication('1');
-    expect(useApplicationStore.getState().applications.map((a) => a.id)).toEqual(['2']);
-    expect(applicationStorage.remove).not.toHaveBeenCalled();
+    useApplicationStore.getState().updateApplication(makeApp('1', 'content'));
+    expect(getPersistedApplications()).toEqual([
+      expect.objectContaining({ id: '1', application: 'content' }),
+    ]);
   });
 });
 
@@ -142,5 +153,59 @@ describe('resetApplicationToPending', () => {
     });
     useApplicationStore.getState().resetApplicationToPending('1');
     expect(useApplicationStore.getState().applications[1].application).toBe('content');
+  });
+
+  it('removes application from localStorage', () => {
+    useApplicationStore.setState({ applications: [makeApp('1', 'content')] });
+    expect(getPersistedApplications()).toHaveLength(1);
+
+    useApplicationStore.getState().resetApplicationToPending('1');
+    expect(getPersistedApplications()).toHaveLength(0);
+  });
+});
+
+describe('persist partialize', () => {
+  it('does not persist pending applications', () => {
+    useApplicationStore.getState().addApplication(makeApp('1', null));
+    expect(getPersistedApplications()).toHaveLength(0);
+  });
+});
+
+describe('regeneration', () => {
+  it('keeps pending application in memory after resetApplicationToPending', () => {
+    useApplicationStore.setState({ applications: [makeApp('1', 'content')] });
+
+    useApplicationStore.getState().resetApplicationToPending('1');
+
+    expect(useApplicationStore.getState().applications).toEqual([makeApp('1', null)]);
+    expect(selectHasPending(useApplicationStore.getState())).toBe(true);
+    expect(getPersistedApplications()).toHaveLength(0);
+  });
+
+  it('preserves pending application during rehydrate after regeneration starts', async () => {
+    useApplicationStore.setState({ applications: [makeApp('1', 'content')] });
+    useApplicationStore.getState().resetApplicationToPending('1');
+
+    await useApplicationStore.persist.rehydrate();
+
+    expect(useApplicationStore.getState().applications).toEqual([makeApp('1', null)]);
+    expect(selectHasPending(useApplicationStore.getState())).toBe(true);
+  });
+
+  it('restores completed application after successful regeneration', () => {
+    useApplicationStore.setState({ applications: [makeApp('1', null)] });
+
+    useApplicationStore.getState().updateApplication(makeApp('1', 'new content'));
+
+    expect(useApplicationStore.getState().applications[0].application).toBe('new content');
+    expect(getPersistedApplications()[0]?.application).toBe('new content');
+  });
+
+  it('adds completed application on update when it was removed from memory', () => {
+    useApplicationStore.setState({ applications: [] });
+
+    useApplicationStore.getState().updateApplication(makeApp('1', 'new content'));
+
+    expect(useApplicationStore.getState().applications).toEqual([makeApp('1', 'new content')]);
   });
 });

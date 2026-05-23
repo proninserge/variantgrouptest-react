@@ -26,11 +26,9 @@ type MutationVariables = {
 export function ApplicationGenerationProvider({
   children,
 }: ApplicationGenerationProviderProps): ReactElement {
-  const addApplication = useApplicationStore((s) => s.addApplication);
-  const persistApplication = useApplicationStore((s) => s.persistApplication);
-  const dropApplication = useApplicationStore((s) => s.dropApplication);
+  const markApplicationPending = useApplicationStore((s) => s.markApplicationPending);
+  const updateApplication = useApplicationStore((s) => s.updateApplication);
   const removeApplication = useApplicationStore((s) => s.removeApplication);
-  const resetApplicationToPending = useApplicationStore((s) => s.resetApplicationToPending);
 
   const setGenerating = useGenerationStore((s) => s.setGenerating);
   const setSuccess = useGenerationStore((s) => s.setSuccess);
@@ -38,7 +36,6 @@ export function ApplicationGenerationProvider({
   const resetState = useGenerationStore((s) => s.resetState);
 
   const applicationIdRef = useRef<string | null>(null);
-  const wasPersistedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const mutationRef = useRef<ReturnType<
     typeof useMutation<string, Error, MutationVariables>
@@ -62,12 +59,7 @@ export function ApplicationGenerationProvider({
 
       const pendingApplication: Application = { id, ...values, application: null };
 
-      if (wasPersistedRef.current) {
-        // Если письмо уже было сохранено в localStorage, сбрасываем его в статус Пендинг
-        resetApplicationToPending(id);
-      } else {
-        addApplication(pendingApplication);
-      }
+      markApplicationPending(pendingApplication);
       postPending(pendingApplication);
     },
 
@@ -76,9 +68,8 @@ export function ApplicationGenerationProvider({
       if (!id) return;
       const completedApplication: Application = { id, ...values, application: content };
 
-      persistApplication(completedApplication);
+      updateApplication(completedApplication);
       postResolved(completedApplication);
-      wasPersistedRef.current = true;
       setSuccess(content);
     },
 
@@ -89,13 +80,7 @@ export function ApplicationGenerationProvider({
       if (!id) return;
       const message = error instanceof Error ? error.message : 'Generation failed';
 
-      if (wasPersistedRef.current) {
-        // Если письмо было сохранено в localStorage, удаляем его полностью
-        removeApplication(id);
-      } else {
-        // Удаляем письмо из стора при первичной генерации
-        dropApplication(id);
-      }
+      removeApplication(id);
       postCancelled(id);
       setError(message);
     },
@@ -137,9 +122,8 @@ export function ApplicationGenerationProvider({
 
     if (!isRetry) {
       applicationIdRef.current = crypto.randomUUID();
-      wasPersistedRef.current = false;
     }
-    // При ретрае: не трогаем applicationIdRef и wasPersistedRef
+    // При ретрае: не трогаем applicationIdRef
 
     abortControllerRef.current?.abort();
     const controller = new AbortController();
@@ -156,19 +140,14 @@ export function ApplicationGenerationProvider({
     abortControllerRef.current?.abort();
 
     if (id && isPending) {
-      if (wasPersistedRef.current) {
-        removeApplication(id);
-      } else {
-        dropApplication(id);
-      }
+      removeApplication(id);
       postCancelled(id);
     }
 
     applicationIdRef.current = null;
-    wasPersistedRef.current = false;
     reset();
     resetState();
-  }, [dropApplication, removeApplication, resetState]);
+  }, [removeApplication, resetState]);
 
   const contextValue = useMemo(
     () => ({ startGeneration, triggerReset }),

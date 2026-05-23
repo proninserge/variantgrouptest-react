@@ -6,11 +6,9 @@ import { CHANNEL_NAME, TAB_ID } from './channel';
 
 // Получение сообщений из канала
 export function useApplicationChannel(): void {
-  const addApplication = useApplicationStore((s) => s.addApplication);
-  const dropApplication = useApplicationStore((s) => s.dropApplication);
+  const markApplicationPending = useApplicationStore((s) => s.markApplicationPending);
   const removeApplication = useApplicationStore((s) => s.removeApplication);
-  const persistApplication = useApplicationStore((s) => s.persistApplication);
-  const resetApplicationToPending = useApplicationStore((s) => s.resetApplicationToPending);
+  const updateApplication = useApplicationStore((s) => s.updateApplication);
 
   useEffect(() => {
     const channel = new BroadcastChannel(CHANNEL_NAME);
@@ -20,31 +18,16 @@ export function useApplicationChannel(): void {
 
       if (data.tabId === TAB_ID) return;
 
-      // Получаем письмо и проверяем есть ли оно в сторе
-      // И если есть, то устанавливаем его в статус pending, либо добавляем в стор
       if (data.type === 'pending') {
-        const exists = useApplicationStore
-          .getState()
-          .applications.some((a) => a.id === data.application.id);
-        if (exists) {
-          resetApplicationToPending(data.application.id);
-        } else {
-          addApplication(data.application);
-        }
+        markApplicationPending(data.application);
       }
 
       if (data.type === 'resolved') {
-        persistApplication(data.application);
+        updateApplication(data.application);
       }
 
-      // Если письмо отменено, то удаляем его из стора и из localStorage
       if (data.type === 'cancelled') {
-        const app = useApplicationStore.getState().applications.find((a) => a.id === data.id);
-        if (app?.application !== null) {
-          removeApplication(data.id);
-        } else {
-          dropApplication(data.id);
-        }
+        removeApplication(data.id);
       }
     }
 
@@ -53,13 +36,7 @@ export function useApplicationChannel(): void {
       channel.removeEventListener('message', onMessage);
       channel.close();
     };
-  }, [
-    addApplication,
-    persistApplication,
-    dropApplication,
-    removeApplication,
-    resetApplicationToPending,
-  ]);
+  }, [markApplicationPending, updateApplication, removeApplication]);
 }
 
 // Получение сообщений из канала через BroadcastChannel API
