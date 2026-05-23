@@ -1,11 +1,13 @@
 import clsx from 'clsx';
 import type { ReactElement } from 'react';
+import { Link, useLocation } from 'react-router';
 
 import { selectCompletedCount, useApplicationStore } from '@/entities/application';
 import { useUserStore } from '@/entities/user';
 import { HomeButton } from '@/features/navigate-home';
 import LogomarkIcon from '@/shared/assets/logomark.svg?react';
 import LogotypeIcon from '@/shared/assets/logotype.svg?react';
+import { RoutePaths } from '@/shared/config';
 import { ProgressDotBar } from '@/shared/ui/progress-dot-bar';
 import { HStack } from '@/shared/ui/stack';
 import { SuccessBadge } from '@/shared/ui/success-badge';
@@ -22,9 +24,12 @@ type HeaderProps = {
 export function Header({ className }: HeaderProps): ReactElement {
   const filledStore = useApplicationStore(selectCompletedCount);
   const total = useUserStore((s) => s.applicationGoal);
+  const location = useLocation();
 
   const filled = filledStore > total ? total : filledStore;
   const label = LABEL;
+
+  const isOnHomePage = location.pathname === RoutePaths.home;
 
   return (
     <HStack
@@ -35,10 +40,17 @@ export function Header({ className }: HeaderProps): ReactElement {
       fullWidth
       className={clsx(styles.root, className)}
     >
-      <HStack align="center" gap="sm" className={styles.left} aria-label="Alt Shift">
-        <LogomarkIcon aria-hidden={true} className={styles.logomark} />
-        <LogotypeIcon aria-hidden={true} className={styles.logotype} />
-      </HStack>
+      <Link
+        to={RoutePaths.home}
+        className={styles.logoLink}
+        aria-label="Alt Shift – go to home page"
+        aria-current={isOnHomePage ? 'page' : undefined}
+      >
+        <HStack align="center" gap="sm">
+          <LogomarkIcon aria-hidden={true} className={styles.logomark} />
+          <LogotypeIcon aria-hidden={true} className={styles.logotype} />
+        </HStack>
+      </Link>
 
       <HStack align="center" gap="lg" className={styles.right}>
         <HStack role="status" aria-label="Application progress" align="center" gap="md">

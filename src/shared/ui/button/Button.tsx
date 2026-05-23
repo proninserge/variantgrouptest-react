@@ -1,5 +1,12 @@
 import clsx from 'clsx';
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactElement, ReactNode } from 'react';
+import type {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  ComponentPropsWithoutRef,
+  ReactElement,
+  ReactNode,
+} from 'react';
+import { Link } from 'react-router';
 
 import { Loader } from '@/shared/ui/loader';
 import { HStack } from '@/shared/ui/stack';
@@ -21,13 +28,14 @@ type SharedProps = {
 
 type AsButton = ButtonHTMLAttributes<HTMLButtonElement> & SharedProps & { as?: 'button' };
 type AsAnchor = AnchorHTMLAttributes<HTMLAnchorElement> & SharedProps & { as: 'a' };
+type AsLink = ComponentPropsWithoutRef<typeof Link> & SharedProps & { as: typeof Link };
 
 // Кнопка с текстом: aria-label опционален
 type WithChildren = { children: ReactNode };
 // Кнопка только с иконкой: aria-label обязателен, иначе нет доступного имени
 type IconOnly = { children?: never; 'aria-label': string };
 
-type ButtonProps = (AsButton | AsAnchor) & (WithChildren | IconOnly);
+type ButtonProps = (AsButton | AsAnchor | AsLink) & (WithChildren | IconOnly);
 
 const variantClassMap: Record<ButtonVariant, string | undefined> = {
   primary: styles.variantPrimary,
@@ -105,6 +113,19 @@ export function Button({
       </HStack>
     </>
   );
+
+  if (Tag === Link) {
+    return (
+      <Link
+        {...(rest as ComponentPropsWithoutRef<typeof Link>)}
+        aria-disabled={isDisabled || undefined}
+        aria-busy={isLoading || undefined}
+        className={rootClassName}
+      >
+        {content}
+      </Link>
+    );
+  }
 
   if (Tag === 'a') {
     return (

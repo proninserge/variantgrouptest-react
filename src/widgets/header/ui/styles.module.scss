@@ -7,9 +7,16 @@
   background-color: var(--background-primary);
 }
 
-.left {
-  flex: 1;
+.logoLink {
   padding-block: var(--size-2);
+  border-radius: var(--radius-sm);
+  outline: none;
+  text-decoration: none;
+  transition: box-shadow 0.65s ease;
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
 }
 
 .right {
