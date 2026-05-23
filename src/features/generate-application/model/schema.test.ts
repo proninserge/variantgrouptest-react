@@ -20,14 +20,22 @@ describe('generateApplicationSchema', () => {
   });
 
   describe('jobTitle', () => {
-    it('rejects when shorter than 3 characters', () => {
-      const result = parse({ jobTitle: 'AB' });
+    it('rejects when empty', () => {
+      const result = parse({ jobTitle: '' });
       expect(result.success).toBe(false);
       if (!result.success) expect(result.error.issues[0]?.message).toContain('required');
     });
 
-    it('accepts exactly 3 characters', () => {
-      expect(parse({ jobTitle: 'Dev' }).success).toBe(true);
+    it('rejects whitespace-only value', () => {
+      expect(parse({ jobTitle: '   ' }).success).toBe(false);
+    });
+
+    it('accepts a single character', () => {
+      expect(parse({ jobTitle: 'A' }).success).toBe(true);
+    });
+
+    it('accepts short values', () => {
+      expect(parse({ jobTitle: 'AB' }).success).toBe(true);
     });
 
     it('rejects when longer than 50 characters', () => {
@@ -54,12 +62,14 @@ describe('generateApplicationSchema', () => {
   });
 
   describe('companyName', () => {
-    it('rejects when shorter than 5 characters', () => {
-      expect(parse({ companyName: 'Acme' }).success).toBe(false);
+    it('rejects when empty', () => {
+      const result = parse({ companyName: '' });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.error.issues[0]?.message).toContain('required');
     });
 
-    it('accepts exactly 5 characters', () => {
-      expect(parse({ companyName: 'Acme2' }).success).toBe(true);
+    it('accepts short names', () => {
+      expect(parse({ companyName: 'Acme' }).success).toBe(true);
     });
 
     it('rejects cyrillic characters', () => {
@@ -68,8 +78,14 @@ describe('generateApplicationSchema', () => {
   });
 
   describe('skills', () => {
-    it('rejects when shorter than 50 characters', () => {
-      expect(parse({ skills: 'TypeScript React' }).success).toBe(false);
+    it('rejects when empty', () => {
+      const result = parse({ skills: '' });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.error.issues[0]?.message).toContain('required');
+    });
+
+    it('accepts short values', () => {
+      expect(parse({ skills: 'TypeScript React' }).success).toBe(true);
     });
 
     it('rejects when longer than 100 characters', () => {
@@ -93,17 +109,22 @@ describe('generateApplicationSchema', () => {
   });
 
   describe('additionalDetails', () => {
-    it('rejects when shorter than 50 characters', () => {
-      expect(parse({ additionalDetails: 'Too short.' }).success).toBe(false);
+    it('rejects when empty', () => {
+      const result = parse({ additionalDetails: '' });
+      expect(result.success).toBe(false);
+      if (!result.success) expect(result.error.issues[0]?.message).toContain('required');
+    });
+
+    it('accepts short values', () => {
+      expect(parse({ additionalDetails: 'Too short.' }).success).toBe(true);
     });
 
     it('rejects when longer than 1200 characters', () => {
       expect(parse({ additionalDetails: 'a '.repeat(601) }).success).toBe(false);
     });
 
-    it('accepts text at exactly 50 characters', () => {
-      // 50 lowercase Latin letters — hits the minimum boundary exactly
-      expect(parse({ additionalDetails: 'a'.repeat(50) }).success).toBe(true);
+    it('accepts a single character', () => {
+      expect(parse({ additionalDetails: 'a' }).success).toBe(true);
     });
   });
 });

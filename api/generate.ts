@@ -1,5 +1,10 @@
 import OpenAI from 'openai';
 
+import {
+  type GenerateApplicationSchema,
+  generateApplicationSchema,
+} from '../src/features/generate-application/model/schema.ts';
+
 export const config = { runtime: 'edge' };
 
 // OPENAI_API_KEY (no VITE_ prefix) — server-only, never sent to the browser.
@@ -26,40 +31,9 @@ const OPENAI_TEMPERATURE = 0.7;
 // 200 tokens ≈ 500 characters — matches the letter length cap in SYSTEM_PROMPT.
 const OPENAI_MAX_TOKENS = 200;
 
-// Field length limits must mirror the Zod schema on the client side.
-const FIELD_LIMITS = {
-  jobTitle: { min: 3, max: 50 },
-  companyName: { min: 5, max: 50 },
-  skills: { min: 50, max: 100 },
-  additionalDetails: { min: 50, max: 1200 },
-} as const;
-
-interface GenerateRequest {
-  jobTitle: string;
-  companyName: string;
-  skills: string;
-  additionalDetails: string;
-}
-
-function isWithinLimits(value: string, field: keyof typeof FIELD_LIMITS): boolean {
-  const trimmed = value.trim();
-  const { min, max } = FIELD_LIMITS[field];
-  return trimmed.length >= min && trimmed.length <= max;
-}
-
-function isValidRequest(body: unknown): body is GenerateRequest {
-  if (!body || typeof body !== 'object') return false;
-  const b = body as Record<string, unknown>;
-  return (
-    typeof b.jobTitle === 'string' &&
-    isWithinLimits(b.jobTitle, 'jobTitle') &&
-    typeof b.companyName === 'string' &&
-    isWithinLimits(b.companyName, 'companyName') &&
-    typeof b.skills === 'string' &&
-    isWithinLimits(b.skills, 'skills') &&
-    typeof b.additionalDetails === 'string' &&
-    isWithinLimits(b.additionalDetails, 'additionalDetails')
-  );
+function parseRequest(body: unknown): GenerateApplicationSchema | null {
+  const result = generateApplicationSchema.safeParse(body);
+  return result.success ? result.data : null;
 }
 
 // In-memory sliding-window rate limiter.
@@ -97,7 +71,7 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-function buildUserMessage(data: GenerateRequest): string {
+function buildUserMessage(data: GenerateApplicationSchema): string {
   return [
     'Write a cover letter for the following candidate:',
     '',
@@ -132,7 +106,8 @@ export default async function handler(req: Request): Promise<Response> {
     return json({ error: 'Invalid JSON' }, 400);
   }
 
-  if (!isValidRequest(body)) {
+  const data = parseRequest(body);
+  if (!data) {
     return json({ error: 'Missing required fields' }, 400);
   }
 
@@ -144,7 +119,7 @@ export default async function handler(req: Request): Promise<Response> {
       max_tokens: OPENAI_MAX_TOKENS,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: buildUserMessage(body) },
+        { role: 'user', content: buildUserMessage(data) },
       ],
     });
   } catch (err) {

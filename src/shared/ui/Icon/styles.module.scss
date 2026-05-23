@@ -1,0 +1,21 @@
+.root {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex-shrink: 0;
+}
+
+:where(.sizeXs) {
+  --icon-size: var(--size-12);
+}
+
+:where(.sizeSm) {
+  --icon-size: var(--size-14);
+}
+
+:where(.sizeMd) {
+  --icon-size: var(--size-20);
+}
+
+:where(.sizeLg) {
+  --icon-size: var(--size-24);
+}

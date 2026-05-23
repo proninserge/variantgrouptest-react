@@ -4,6 +4,7 @@
   border-radius: var(--radius-xl);
   overflow: hidden;
   padding: var(--spacing-lg);
+  width: 100%;
 }
 
 .emptyRoot {
@@ -18,13 +19,14 @@
 }
 
 .loaderIcon {
-  width: var(--spacing-4xl) !important;
-  height: var(--spacing-4xl) !important;
+  --icon-size: var(--spacing-4xl);
   color: var(--text-primary);
 }
 
 .body {
   position: relative;
+  width: 100%;
+  min-width: 0;
 }
 
 .text {
@@ -33,7 +35,9 @@
   -webkit-box-orient: vertical;
   line-height: 26px;
   overflow: hidden;
+  width: 100%;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .fade {

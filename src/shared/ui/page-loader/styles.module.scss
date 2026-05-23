@@ -6,7 +6,6 @@
 }
 
 .icon {
-  width: var(--spacing-6xl) !important;
-  height: var(--spacing-6xl) !important;
+  --icon-size: var(--spacing-6xl);
   color: var(--accent);
 }

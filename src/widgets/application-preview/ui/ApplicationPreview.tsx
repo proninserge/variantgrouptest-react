@@ -36,14 +36,14 @@ function PreviewBody({ status, content, error }: PreviewBodyProps): ReactElement
 
   if (status === 'error') {
     return (
-      <Typography variant="md" color="error">
+      <Typography variant="md" color="error" className={styles.text}>
         {error ?? 'Something went wrong. Please try again.'}
       </Typography>
     );
   }
 
   return (
-    <Typography variant="md" color="text-secondary">
+    <Typography variant="md" color="text-secondary" className={styles.text}>
       Your personalized job application will appear here...
     </Typography>
   );
@@ -75,6 +75,3 @@ export function ApplicationPreview(): ReactElement {
     </article>
   );
 }
-
-// Добавил отдельный компонент, хотя в сущности это та же карточка письма с дашборда
-// Добавил отдельный чтобы разграничить функционал + лоадинг стейты

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 
 import { RoutePaths } from '@/shared/config';
 import { Button } from '@/shared/ui/button';
@@ -8,8 +8,6 @@ import { VStack } from '@/shared/ui/stack';
 import { Typography } from '@/shared/ui/typography';
 
 export function NotFoundPage(): ReactElement {
-  const navigate = useNavigate();
-
   return (
     <VStack align="center" justify="center" fullWidth className={styles.root}>
       <VStack align="center" gap="md" className={styles.content}>
@@ -19,12 +17,7 @@ export function NotFoundPage(): ReactElement {
         <Typography variant="h2" color="success" weight="semibold">
           Yet it does not exist 😔
         </Typography>
-        <Button
-          size="lg"
-          onClick={() => {
-            void navigate(RoutePaths.home);
-          }}
-        >
+        <Button as={Link} to={RoutePaths.home} size="lg">
           Go home
         </Button>
       </VStack>

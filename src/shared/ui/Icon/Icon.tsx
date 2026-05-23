@@ -1,15 +1,18 @@
+import clsx from 'clsx';
 import type { FC, SVGProps } from 'react';
+
+import styles from './styles.module.scss';
 
 export type SvgIcon = FC<SVGProps<SVGSVGElement>>;
 
-const iconSizeTokens = {
-  xs: 'var(--size-12)',
-  sm: 'var(--size-14)',
-  md: 'var(--size-20)',
-  lg: 'var(--size-24)',
+const iconSizeClass = {
+  xs: styles.sizeXs,
+  sm: styles.sizeSm,
+  md: styles.sizeMd,
+  lg: styles.sizeLg,
 } as const;
 
-export type IconSize = keyof typeof iconSizeTokens;
+export type IconSize = keyof typeof iconSizeClass;
 
 type IconProps = {
   icon: SvgIcon;
@@ -19,16 +22,13 @@ type IconProps = {
 };
 
 export function Icon({ icon: SvgComponent, size = 'md', label, className }: IconProps) {
-  const sizeValue = iconSizeTokens[size];
-
   return (
     <SvgComponent
-      style={{ width: sizeValue, height: sizeValue, flexShrink: 0 }}
       aria-hidden={label ? undefined : true}
       aria-label={label}
       role={label ? 'img' : undefined}
       focusable="false"
-      className={className}
+      className={clsx(styles.root, iconSizeClass[size], className)}
     />
   );
 }

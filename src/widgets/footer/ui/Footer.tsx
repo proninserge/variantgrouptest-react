@@ -8,5 +8,7 @@ type FooterProps = {
 };
 
 export function Footer({ className }: FooterProps): ReactElement {
-  return <div className={clsx(styles.footer, className)} />;
+  return <footer className={clsx(styles.footer, className)} />;
 }
+
+// Left the Footer here for the future enhancements, removed in the layout
