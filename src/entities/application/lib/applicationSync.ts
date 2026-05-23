@@ -1,6 +1,6 @@
 import { useApplicationStore } from '../model/store';
 import type { Application } from '../model/types';
-import { postCancelled, postPending, postResolved } from './channel';
+import { postCancelled, postDeleted, postPending, postResolved } from './channel';
 
 /** Updates local state and notifies other tabs that generation has started. */
 export function syncApplicationAsPending(application: Application): void {
@@ -18,4 +18,10 @@ export function syncApplicationAsResolved(application: Application): void {
 export function syncApplicationAsCancelled(applicationId: string): void {
   useApplicationStore.getState().removeApplication(applicationId);
   postCancelled(applicationId);
+}
+
+/** Removes application from local state and notifies other tabs about deletion. */
+export function syncApplicationAsDeleted(applicationId: string): void {
+  useApplicationStore.getState().removeApplication(applicationId);
+  postDeleted(applicationId);
 }

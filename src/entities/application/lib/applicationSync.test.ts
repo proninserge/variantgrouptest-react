@@ -18,15 +18,17 @@ vi.mock('./channel', () => ({
   postPending: vi.fn(),
   postResolved: vi.fn(),
   postCancelled: vi.fn(),
+  postDeleted: vi.fn(),
 }));
 
 import type { Application } from '../model/types';
 import {
   syncApplicationAsCancelled,
+  syncApplicationAsDeleted,
   syncApplicationAsPending,
   syncApplicationAsResolved,
 } from './applicationSync';
-import { postCancelled, postPending, postResolved } from './channel';
+import { postCancelled, postDeleted, postPending, postResolved } from './channel';
 
 const application: Application = {
   id: '1',
@@ -63,5 +65,12 @@ describe('applicationSync', () => {
 
     expect(removeApplication).toHaveBeenCalledWith('1');
     expect(postCancelled).toHaveBeenCalledWith('1');
+  });
+
+  it('syncApplicationAsDeleted updates the store and notifies other tabs', () => {
+    syncApplicationAsDeleted('1');
+
+    expect(removeApplication).toHaveBeenCalledWith('1');
+    expect(postDeleted).toHaveBeenCalledWith('1');
   });
 });

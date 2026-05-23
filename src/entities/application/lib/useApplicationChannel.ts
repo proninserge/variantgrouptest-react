@@ -25,7 +25,7 @@ export function useApplicationChannel(): void {
         updateApplication(data.application);
       }
 
-      if (data.type === 'cancelled') {
+      if (data.type === 'cancelled' || data.type === 'deleted') {
         removeApplication(data.id);
       }
     }

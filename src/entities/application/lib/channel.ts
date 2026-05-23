@@ -3,7 +3,8 @@ import type { Application } from '../model/types';
 export type ChannelMessage =
   | { type: 'pending'; application: Application; tabId: string }
   | { type: 'resolved'; application: Application; tabId: string }
-  | { type: 'cancelled'; id: string; tabId: string };
+  | { type: 'cancelled'; id: string; tabId: string }
+  | { type: 'deleted'; id: string; tabId: string };
 
 export const CHANNEL_NAME = 'applications';
 
@@ -36,6 +37,14 @@ export function postResolved(application: Application): void {
 export function postCancelled(id: string): void {
   getSender().postMessage({
     type: 'cancelled',
+    id,
+    tabId: TAB_ID,
+  } satisfies ChannelMessage);
+}
+
+export function postDeleted(id: string): void {
+  getSender().postMessage({
+    type: 'deleted',
     id,
     tabId: TAB_ID,
   } satisfies ChannelMessage);
