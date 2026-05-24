@@ -11,6 +11,7 @@ vi.mock('@/entities/application/lib/applicationSync', () => ({
   syncApplicationAsGenerating: vi.fn(),
   syncApplicationAsResolved: vi.fn(),
   syncApplicationAsCancelled: vi.fn(),
+  syncApplicationGenerationAborted: vi.fn(),
 }));
 
 vi.mock('./useBeforeUnloadGenerationCleanup', () => ({
@@ -21,6 +22,7 @@ import {
   syncApplicationAsCancelled,
   syncApplicationAsGenerating,
   syncApplicationAsResolved,
+  syncApplicationGenerationAborted,
 } from '@/entities/application/lib/applicationSync';
 import { generateApplication } from '@/features/generate-application/api/generateApplication';
 
@@ -139,7 +141,7 @@ describe('useGenerateApplicationSession', () => {
     expect(result.current.error).toBe('Generated content is empty');
   });
 
-  it('does not cancel the application when the request is aborted', async () => {
+  it('reverts the application when the active request is aborted', async () => {
     vi.mocked(generateApplication).mockRejectedValue(new DOMException('Aborted', 'AbortError'));
 
     const { result } = renderSession();
@@ -149,9 +151,44 @@ describe('useGenerateApplicationSession', () => {
     });
 
     await waitFor(() => {
-      expect(syncApplicationAsGenerating).toHaveBeenCalled();
+      expect(result.current.status).toBe('error');
     });
 
+    expect(syncApplicationGenerationAborted).toHaveBeenCalledWith(APPLICATION_ID);
+    expect(syncApplicationAsCancelled).not.toHaveBeenCalled();
+  });
+
+  it('ignores abort errors from a superseded request', async () => {
+    let rejectFirstRequest: ((reason: DOMException) => void) | undefined;
+
+    vi.mocked(generateApplication)
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectFirstRequest = reject;
+          }),
+      )
+      .mockResolvedValueOnce('Second letter');
+
+    const { result } = renderSession();
+
+    act(() => {
+      result.current.startGeneration(FORM_VALUES);
+    });
+
+    act(() => {
+      result.current.startGeneration(FORM_VALUES);
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    act(() => {
+      rejectFirstRequest?.(new DOMException('Aborted', 'AbortError'));
+    });
+
+    expect(syncApplicationGenerationAborted).not.toHaveBeenCalled();
     expect(syncApplicationAsCancelled).not.toHaveBeenCalled();
   });
 

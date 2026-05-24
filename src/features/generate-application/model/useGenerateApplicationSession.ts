@@ -6,6 +6,7 @@ import {
   syncApplicationAsCancelled,
   syncApplicationAsGenerating,
   syncApplicationAsResolved,
+  syncApplicationGenerationAborted,
 } from '@/entities/application/lib/applicationSync';
 import { generateApplication } from '@/features/generate-application/api/generateApplication';
 
@@ -60,8 +61,17 @@ export function useGenerateApplicationSession(): GenerateApplicationContextValue
 
       syncApplicationAsResolved(completedApplication);
     },
-    onError: (error) => {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
+    onError: (error, { signal }) => {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        // Ignore aborts from a superseded request; revert only the active one.
+        if (signal !== abortControllerRef.current?.signal) return;
+
+        const applicationId = applicationIdRef.current;
+        if (!applicationId) return;
+
+        syncApplicationGenerationAborted(applicationId);
+        return;
+      }
 
       const applicationId = applicationIdRef.current;
       if (!applicationId) return;

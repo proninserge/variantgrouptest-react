@@ -30,6 +30,7 @@ import {
   syncApplicationAsDeleted,
   syncApplicationAsGenerating,
   syncApplicationAsResolved,
+  syncApplicationGenerationAborted,
 } from './applicationSync';
 import { postCancelled, postDeleted, postPending, postResolved } from './channel';
 
@@ -47,9 +48,14 @@ const resolvedApplication: Application = {
   generationStatus: 'idle',
 };
 
-const generatingApplication: Application = {
+const pendingGeneratingApplication: Application = {
   ...applicationFields,
   application: null,
+  generationStatus: 'generating',
+};
+
+const regeneratingApplication: Application = {
+  ...applicationFields,
   generationStatus: 'generating',
 };
 
@@ -62,13 +68,13 @@ describe('applicationSync', () => {
   it('syncApplicationAsGenerating updates the store and broadcasts the normalized application', () => {
     const generatingFields = { ...applicationFields, application: null };
     markApplicationGenerating.mockImplementation(() => {
-      applications.push(generatingApplication);
+      applications.push(pendingGeneratingApplication);
     });
 
     syncApplicationAsGenerating(generatingFields);
 
     expect(markApplicationGenerating).toHaveBeenCalledWith(generatingFields);
-    expect(postPending).toHaveBeenCalledWith(generatingApplication);
+    expect(postPending).toHaveBeenCalledWith(pendingGeneratingApplication);
   });
 
   it('syncApplicationAsResolved updates the store and broadcasts the normalized application', () => {
@@ -94,5 +100,27 @@ describe('applicationSync', () => {
 
     expect(removeApplication).toHaveBeenCalledWith('1');
     expect(postDeleted).toHaveBeenCalledWith('1');
+  });
+
+  it('syncApplicationGenerationAborted removes a pending application', () => {
+    applications.push(pendingGeneratingApplication);
+
+    syncApplicationGenerationAborted('1');
+
+    expect(removeApplication).toHaveBeenCalledWith('1');
+    expect(postCancelled).toHaveBeenCalledWith('1');
+  });
+
+  it('syncApplicationGenerationAborted restores a completed application after aborted regeneration', () => {
+    applications.push(regeneratingApplication);
+    updateApplication.mockImplementation(() => {
+      applications.splice(0, applications.length, resolvedApplication);
+    });
+
+    syncApplicationGenerationAborted('1');
+
+    expect(updateApplication).toHaveBeenCalledWith(applicationFields);
+    expect(postResolved).toHaveBeenCalledWith(resolvedApplication);
+    expect(removeApplication).not.toHaveBeenCalled();
   });
 });

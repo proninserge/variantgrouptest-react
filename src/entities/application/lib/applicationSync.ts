@@ -32,6 +32,31 @@ export function syncApplicationAsCancelled(applicationId: string): void {
   postCancelled(applicationId);
 }
 
+/** Reverts store state after the active generation request was aborted. */
+export function syncApplicationGenerationAborted(applicationId: string): void {
+  const existing = getApplicationById(applicationId);
+  if (!existing) return;
+
+  if (existing.application !== null) {
+    useApplicationStore.getState().updateApplication({
+      id: existing.id,
+      jobTitle: existing.jobTitle,
+      companyName: existing.companyName,
+      skills: existing.skills,
+      additionalDetails: existing.additionalDetails,
+      application: existing.application,
+    });
+
+    const syncedApplication = getApplicationById(applicationId);
+    if (syncedApplication) {
+      postResolved(syncedApplication);
+    }
+    return;
+  }
+
+  syncApplicationAsCancelled(applicationId);
+}
+
 /** Removes application from local state and notifies other tabs about deletion. */
 export function syncApplicationAsDeleted(applicationId: string): void {
   useApplicationStore.getState().removeApplication(applicationId);

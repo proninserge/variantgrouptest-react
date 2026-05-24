@@ -198,7 +198,7 @@ describe('useGenerateApplicationSession integration', () => {
     expect(createRouteLoader()).toBeNull();
   });
 
-  it('keeps completed application in store when regeneration is aborted', async () => {
+  it('restores completed application after aborted regeneration', async () => {
     vi.mocked(generateApplication)
       .mockResolvedValueOnce('First letter')
       .mockRejectedValueOnce(new DOMException('Aborted', 'AbortError'));
@@ -218,19 +218,41 @@ describe('useGenerateApplicationSession integration', () => {
     });
 
     await waitFor(() => {
-      expect(postPending).toHaveBeenCalledTimes(2);
+      expect(result.current.status).toBe('error');
     });
 
     expect(getStoreState().applications).toEqual([
       expect.objectContaining({
         id: APPLICATION_ID,
         application: 'First letter',
-        generationStatus: 'generating',
+        generationStatus: 'idle',
       }),
     ]);
     expect(selectCompletedCount(getStoreState())).toBe(1);
-    expect(getPersistedApplicationIds()).toEqual([]);
+    expect(selectHasGeneratingApplication(getStoreState())).toBe(false);
+    expect(getPersistedApplicationIds()).toEqual([APPLICATION_ID]);
     expect(postCancelled).not.toHaveBeenCalled();
+    expect(createRouteLoader()).toBeNull();
+  });
+
+  it('clears pending application after aborted first generation', async () => {
+    vi.mocked(generateApplication).mockRejectedValue(new DOMException('Aborted', 'AbortError'));
+
+    const { result } = renderSession();
+
+    act(() => {
+      result.current.startGeneration(FORM_VALUES);
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
+    expect(getStoreState().applications).toEqual([]);
+    expect(selectHasGeneratingApplication(getStoreState())).toBe(false);
+    expect(getPersistedApplicationIds()).toEqual([]);
+    expect(postCancelled).toHaveBeenCalledWith(APPLICATION_ID);
+    expect(createRouteLoader()).toBeNull();
   });
 
   it('blocks create route while regeneration is in flight', async () => {
