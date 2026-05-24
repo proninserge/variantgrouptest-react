@@ -65,4 +65,11 @@ describe('createRouteLoader', () => {
     createRouteLoader();
     expect(redirect).toHaveBeenCalledWith(RoutePaths.home);
   });
+
+  it('allows navigation after a failed regeneration removes the generating entry', () => {
+    useApplicationStore.setState({ applications: [] });
+
+    expect(createRouteLoader()).toBeNull();
+    expect(redirect).not.toHaveBeenCalled();
+  });
 });

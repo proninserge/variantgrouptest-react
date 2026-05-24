@@ -155,6 +155,36 @@ describe('useGenerateApplicationSession', () => {
     expect(syncApplicationAsCancelled).not.toHaveBeenCalled();
   });
 
+  it('cancels the application when regeneration fails after success', async () => {
+    vi.mocked(generateApplication)
+      .mockResolvedValueOnce('First letter')
+      .mockRejectedValueOnce(new Error('OpenAI unavailable'));
+
+    const { result } = renderSession();
+
+    act(() => {
+      result.current.startGeneration(FORM_VALUES);
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    act(() => {
+      result.current.startGeneration(FORM_VALUES);
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
+    expect(randomUuidSpy).toHaveBeenCalledTimes(1);
+    expect(syncApplicationAsGenerating).toHaveBeenCalledTimes(2);
+    expect(syncApplicationAsResolved).toHaveBeenCalledTimes(1);
+    expect(syncApplicationAsCancelled).toHaveBeenCalledWith(APPLICATION_ID);
+    expect(result.current.error).toBe('OpenAI unavailable');
+  });
+
   it('reuses the same application id on Try Again', async () => {
     vi.mocked(generateApplication)
       .mockResolvedValueOnce('First letter')
