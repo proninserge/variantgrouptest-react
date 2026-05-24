@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import {
   type GenerateApplicationSchema,
   generateApplicationSchema,
-} from '../src/features/generate-application/model/schema.ts';
+} from '../src/features/generate-application/model/schema';
 
 export const config = { runtime: 'edge' };
 
