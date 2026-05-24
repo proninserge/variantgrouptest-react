@@ -1,34 +1,44 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { Application } from './types';
+import {
+  hydrateApplication,
+  isApplicationCompleted,
+  isApplicationInFlight,
+  isPersistableApplication,
+  toPersistedApplication,
+} from './predicates';
+import { selectCompletedCount, selectHasGeneratingApplication } from './selectors';
+import type { Application, ApplicationFields, CompletedApplicationFields } from './types';
 
 // Sync model:
 // - Completed applications → localStorage via persist (partialize).
-// - Pending applications → memory only; synced across tabs via BroadcastChannel.
-// - merge() keeps in-memory pending entries when rehydrate loads persisted completed list.
+// - In-flight applications → memory only; synced across tabs via BroadcastChannel.
+// - merge() keeps in-memory in-flight entries when rehydrate loads persisted completed list.
 
 export const APPLICATIONS_STORAGE_KEY = 'applications';
+
+export { selectCompletedCount, selectHasGeneratingApplication };
 
 interface ApplicationStore {
   applications: Application[];
   removeApplication: (id: string) => void;
-  markApplicationPending: (application: Application) => void;
-  updateApplication: (application: Application) => void;
+  markApplicationGenerating: (application: ApplicationFields) => void;
+  updateApplication: (application: CompletedApplicationFields) => void;
 }
-
-const isCompleted = (application: Application): boolean => application.application !== null;
 
 type PersistedApplicationStore = Pick<ApplicationStore, 'applications'>;
 
 function mergePersistedState(persisted: unknown, current: ApplicationStore): ApplicationStore {
-  const persistedApps = (persisted as PersistedApplicationStore | undefined)?.applications ?? [];
-  const pendingApps = current.applications.filter((a) => a.application === null);
-  const persistedIds = new Set(persistedApps.map((a) => a.id));
+  const persistedApps = (
+    (persisted as PersistedApplicationStore | undefined)?.applications ?? []
+  ).map(hydrateApplication);
+  const inFlightApps = current.applications.filter(isApplicationInFlight);
+  const inFlightIds = new Set(inFlightApps.map((a) => a.id));
 
   return {
     ...current,
-    applications: [...persistedApps, ...pendingApps.filter((a) => !persistedIds.has(a.id))],
+    applications: [...persistedApps.filter((a) => !inFlightIds.has(a.id)), ...inFlightApps],
   };
 }
 
@@ -41,7 +51,9 @@ const storage = createJSONStorage<Pick<ApplicationStore, 'applications'>>(() => 
       const parsed: unknown = JSON.parse(value);
       if (Array.isArray(parsed)) {
         return JSON.stringify({
-          state: { applications: parsed.filter(isCompleted) },
+          state: {
+            applications: parsed.filter(isApplicationCompleted).map(hydrateApplication),
+          },
           version: 0,
         });
       }
@@ -59,12 +71,6 @@ const storage = createJSONStorage<Pick<ApplicationStore, 'applications'>>(() => 
   },
 }));
 
-export const selectCompletedCount = (s: ApplicationStore): number =>
-  s.applications.filter(isCompleted).length;
-
-export const selectHasPending = (s: ApplicationStore): boolean =>
-  s.applications.some((a) => a.application === null);
-
 export const useApplicationStore = create<ApplicationStore>()(
   persist(
     (set) => ({
@@ -74,44 +80,56 @@ export const useApplicationStore = create<ApplicationStore>()(
           applications: state.applications.filter((a) => a.id !== id),
         }));
       },
-      markApplicationPending: (application) => {
+      markApplicationGenerating: (application) => {
         set((state) => {
-          const exists = state.applications.some((a) => a.id === application.id);
+          const existing = state.applications.find((a) => a.id === application.id);
+          const generatingApplication: Application = {
+            ...application,
+            application: existing?.application ?? application.application,
+            generationStatus: 'generating',
+          };
 
-          if (exists) {
+          if (existing) {
             return {
               applications: state.applications.map((a) =>
-                a.id === application.id ? { ...a, application: null } : a,
+                a.id === application.id ? generatingApplication : a,
               ),
             };
           }
 
-          return { applications: [...state.applications, application] };
+          return { applications: [...state.applications, generatingApplication] };
         });
       },
-      // Upsert: covers cross-tab/rehydrate edge cases where completed app is missing in memory.
       updateApplication: (application) => {
+        const resolvedApplication: Application = {
+          ...application,
+          generationStatus: 'idle',
+        };
+
         set((state) => {
           const exists = state.applications.some((a) => a.id === application.id);
 
           if (exists) {
             return {
               applications: state.applications.map((a) =>
-                a.id === application.id ? application : a,
+                a.id === application.id ? resolvedApplication : a,
               ),
             };
           }
 
-          return { applications: [...state.applications, application] };
+          return { applications: [...state.applications, resolvedApplication] };
         });
       },
     }),
     {
       name: APPLICATIONS_STORAGE_KEY,
       storage,
-      partialize: (state) => ({
-        applications: state.applications.filter(isCompleted),
-      }),
+      partialize: (state) =>
+        ({
+          applications: state.applications
+            .filter(isPersistableApplication)
+            .map(toPersistedApplication),
+        }) as Pick<ApplicationStore, 'applications'>,
       merge: mergePersistedState,
     },
   ),

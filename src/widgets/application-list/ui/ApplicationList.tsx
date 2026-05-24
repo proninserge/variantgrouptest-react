@@ -1,6 +1,11 @@
 import type { ReactElement } from 'react';
 
-import { ApplicationCard, EmptyApplicationList, useApplicationStore } from '@/entities/application';
+import {
+  ApplicationCard,
+  EmptyApplicationList,
+  isApplicationInFlight,
+  useApplicationStore,
+} from '@/entities/application';
 import { CopyApplicationButton } from '@/features/copy-application';
 import { DeleteApplicationButton } from '@/features/delete-application';
 
@@ -16,15 +21,15 @@ export function ApplicationList(): ReactElement {
   return (
     <ul className={styles.grid}>
       {applications.map((application) => {
-        const isPending = application.application === null;
+        const isLoading = isApplicationInFlight(application);
 
         return (
           <li key={application.id}>
             <ApplicationCard
-              isLoading={isPending}
+              isLoading={isLoading}
               application={application}
               controls={
-                application.application !== null ? (
+                application.application !== null && !isLoading ? (
                   <>
                     <DeleteApplicationButton applicationId={application.id} />
                     <CopyApplicationButton text={application.application} />

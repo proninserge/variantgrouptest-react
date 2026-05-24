@@ -18,9 +18,14 @@ const COMPLETED_APP = {
   skills: 'React',
   additionalDetails: 'Details',
   application: 'Dear Team...',
+  generationStatus: 'idle' as const,
 };
 
-const PENDING_APP = { ...COMPLETED_APP, application: null };
+const GENERATING_APP = {
+  ...COMPLETED_APP,
+  application: null,
+  generationStatus: 'generating' as const,
+};
 
 beforeEach(() => {
   useApplicationStore.setState({ applications: [] });
@@ -28,12 +33,12 @@ beforeEach(() => {
 });
 
 describe('createRouteLoader', () => {
-  it('returns null when there are no pending applications', () => {
+  it('returns null when no application is generating', () => {
     expect(createRouteLoader()).toBeNull();
   });
 
-  it('redirects to home when there is a pending application', () => {
-    useApplicationStore.setState({ applications: [PENDING_APP] });
+  it('redirects to home when an application is generating', () => {
+    useApplicationStore.setState({ applications: [GENERATING_APP] });
     createRouteLoader();
     expect(redirect).toHaveBeenCalledWith(RoutePaths.home);
   });
@@ -44,12 +49,20 @@ describe('createRouteLoader', () => {
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it('redirects when at least one application is pending among multiple', () => {
+  it('redirects when at least one application is generating among multiple', () => {
     useApplicationStore.setState({
-      applications: [COMPLETED_APP, PENDING_APP],
+      applications: [COMPLETED_APP, GENERATING_APP],
     });
     createRouteLoader();
     expect(redirect).toHaveBeenCalledTimes(1);
+    expect(redirect).toHaveBeenCalledWith(RoutePaths.home);
+  });
+
+  it('redirects when a completed application is being regenerated', () => {
+    useApplicationStore.setState({
+      applications: [{ ...COMPLETED_APP, generationStatus: 'generating' as const }],
+    });
+    createRouteLoader();
     expect(redirect).toHaveBeenCalledWith(RoutePaths.home);
   });
 });

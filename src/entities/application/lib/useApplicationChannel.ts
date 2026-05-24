@@ -5,7 +5,7 @@ import type { ChannelMessage } from './channel';
 import { CHANNEL_NAME, TAB_ID } from './channel';
 
 export function useApplicationChannel(): void {
-  const markApplicationPending = useApplicationStore((s) => s.markApplicationPending);
+  const markApplicationGenerating = useApplicationStore((s) => s.markApplicationGenerating);
   const removeApplication = useApplicationStore((s) => s.removeApplication);
   const updateApplication = useApplicationStore((s) => s.updateApplication);
 
@@ -18,11 +18,15 @@ export function useApplicationChannel(): void {
       if (data.tabId === TAB_ID) return;
 
       if (data.type === 'pending') {
-        markApplicationPending(data.application);
+        markApplicationGenerating(data.application);
       }
 
       if (data.type === 'resolved') {
-        updateApplication(data.application);
+        const { application, ...fields } = data.application;
+
+        if (application !== null) {
+          updateApplication({ ...fields, application });
+        }
       }
 
       if (data.type === 'cancelled' || data.type === 'deleted') {
@@ -35,5 +39,5 @@ export function useApplicationChannel(): void {
       channel.removeEventListener('message', onMessage);
       channel.close();
     };
-  }, [markApplicationPending, updateApplication, removeApplication]);
+  }, [markApplicationGenerating, updateApplication, removeApplication]);
 }

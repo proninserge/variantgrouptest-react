@@ -1,10 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { Application } from '@/entities/application';
+import type { ApplicationFields, CompletedApplicationFields } from '@/entities/application';
 import {
   syncApplicationAsCancelled,
-  syncApplicationAsPending,
+  syncApplicationAsGenerating,
   syncApplicationAsResolved,
 } from '@/entities/application/lib/applicationSync';
 import { generateApplication } from '@/features/generate-application/api/generateApplication';
@@ -41,14 +41,18 @@ export function useGenerateApplicationSession(): GenerateApplicationContextValue
       const applicationId = applicationIdRef.current;
       if (!applicationId) return;
 
-      const pendingApplication: Application = { id: applicationId, ...values, application: null };
-      syncApplicationAsPending(pendingApplication);
+      const pendingApplication: ApplicationFields = {
+        id: applicationId,
+        ...values,
+        application: null,
+      };
+      syncApplicationAsGenerating(pendingApplication);
     },
     onSuccess: (content, { values }) => {
       const applicationId = applicationIdRef.current;
       if (!applicationId) return;
 
-      const completedApplication: Application = {
+      const completedApplication: CompletedApplicationFields = {
         id: applicationId,
         ...values,
         application: content,

@@ -8,7 +8,7 @@ vi.mock('@/features/generate-application/api/generateApplication', () => ({
 }));
 
 vi.mock('@/entities/application/lib/applicationSync', () => ({
-  syncApplicationAsPending: vi.fn(),
+  syncApplicationAsGenerating: vi.fn(),
   syncApplicationAsResolved: vi.fn(),
   syncApplicationAsCancelled: vi.fn(),
 }));
@@ -19,7 +19,7 @@ vi.mock('./useBeforeUnloadGenerationCleanup', () => ({
 
 import {
   syncApplicationAsCancelled,
-  syncApplicationAsPending,
+  syncApplicationAsGenerating,
   syncApplicationAsResolved,
 } from '@/entities/application/lib/applicationSync';
 import { generateApplication } from '@/features/generate-application/api/generateApplication';
@@ -83,7 +83,7 @@ describe('useGenerateApplicationSession', () => {
       result.current.startGeneration(FORM_VALUES);
     });
 
-    expect(syncApplicationAsPending).toHaveBeenCalledWith(pendingApplication());
+    expect(syncApplicationAsGenerating).toHaveBeenCalledWith(pendingApplication());
   });
 
   it('resolves a completed application on success', async () => {
@@ -149,7 +149,7 @@ describe('useGenerateApplicationSession', () => {
     });
 
     await waitFor(() => {
-      expect(syncApplicationAsPending).toHaveBeenCalled();
+      expect(syncApplicationAsGenerating).toHaveBeenCalled();
     });
 
     expect(syncApplicationAsCancelled).not.toHaveBeenCalled();
@@ -175,8 +175,8 @@ describe('useGenerateApplicationSession', () => {
     });
 
     expect(randomUuidSpy).toHaveBeenCalledTimes(1);
-    expect(syncApplicationAsPending).toHaveBeenCalledTimes(2);
-    expect(syncApplicationAsPending).toHaveBeenLastCalledWith(pendingApplication());
+    expect(syncApplicationAsGenerating).toHaveBeenCalledTimes(2);
+    expect(syncApplicationAsGenerating).toHaveBeenLastCalledWith(pendingApplication());
 
     await waitFor(() => {
       expect(result.current.status).toBe('success');

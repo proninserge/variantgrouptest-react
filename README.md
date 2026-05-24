@@ -4,85 +4,85 @@
 
 ## Prerequisites
 
-| Требование       | Версия / Описание                                              |
-| ---------------- | -------------------------------------------------------------- |
-| Node.js          | >= 20.x                                                        |
-| npm              | >= 10.x                                                        |
-| Vercel CLI       | `npm i -g vercel`                                              |
-| `OPENAI_API_KEY` | Получить на [platform.openai.com](https://platform.openai.com) |
+| Requirement      | Version / Description                                         |
+| ---------------- | ------------------------------------------------------------- |
+| Node.js          | >= 20.x                                                       |
+| npm              | >= 10.x                                                       |
+| Vercel CLI       | `npm i -g vercel`                                             |
+| `OPENAI_API_KEY` | Get one at [platform.openai.com](https://platform.openai.com) |
 
 ---
 
-## Запуск приложения
+## Running the app
 
 ```bash
 npm i
 npm run dev:api
 ```
 
-> Убедись, что Vercel CLI установлен (`vercel --version`) и `OPENAI_API_KEY` задан в `.env`.
+> Make sure Vercel CLI is installed (`vercel --version`) and `OPENAI_API_KEY` is set in `.env`.
 
 ---
 
 ## Decisions
 
-### Стек
+### Stack
 
-| Библиотека        | Обоснование                                                                    |
-| ----------------- | ------------------------------------------------------------------------------ |
-| React, TypeScript | Требование проекта                                                             |
-| Vite              | Быстрый сборщик с гибким конфигом, современный стандарт, хороший DX            |
-| Zustand           | Лёгкий стейт-менеджер без бойлерплейта, современный стандарт                   |
-| React Query       | Работа с серверным состоянием, современный стандарт                            |
-| SCSS Modules      | Переменные, миксины, модульность; не нагружает JS-бандл в отличие от CSS-in-JS |
-| clsx              | Удобная работа с динамическими классами                                        |
-| react-hook-form   | Современный гибкий подход к формам                                             |
-| zod               | Современная гибкая валидация схем                                              |
-| OpenAI            | Требование проекта                                                             |
-| vitest            | Unit-тестирование, нативно подходит экосистеме Vite                            |
+| Library           | Why                                                                         |
+| ----------------- | --------------------------------------------------------------------------- |
+| React, TypeScript | Project requirement                                                         |
+| Vite              | Fast bundler with flexible config, modern default, good DX                  |
+| Zustand           | Lightweight state manager without boilerplate, modern default               |
+| React Query       | Server state handling, modern default                                       |
+| SCSS Modules      | Variables, mixins, modularity; doesn't bloat the JS bundle unlike CSS-in-JS |
+| clsx              | Handy for dynamic class names                                               |
+| react-hook-form   | Modern, flexible approach to forms                                          |
+| zod               | Modern, flexible schema validation                                          |
+| OpenAI            | Project requirement                                                         |
+| vitest            | Unit testing, fits the Vite ecosystem natively                              |
 
-### Архитектура: Feature-Sliced Design (FSD)
+### Architecture: Feature-Sliced Design (FSD)
 
-Современный стандарт для масштабируемых React-приложений. Обеспечивает строгую декомпозицию, слабую зацепленность и упрощает поддержку.
+A modern standard for scalable React apps. Keeps things strictly decomposed, loosely coupled, and easier to maintain.
 
 ```
 src/
-├── app/       # Инициализация, провайдеры, роутинг
-├── pages/     # Страницы (композиция виджетов)
-├── widgets/   # Автономные блоки UI
-├── features/  # Действия пользователя (use cases)
-├── entities/  # Бизнес-сущности
-└── shared/    # Переиспользуемый UI, утилиты, типы
+├── app/       # Bootstrap, providers, routing
+├── pages/     # Pages (widget composition)
+├── widgets/   # Self-contained UI blocks
+├── features/  # User actions (use cases)
+├── entities/  # Business entities
+└── shared/    # Reusable UI, utilities, types
 ```
 
-### AI-инструменты
+### AI tools
 
 ChatGPT, Cursor w/ Claude Sonnet
 
 ---
 
-## Решения по макету
+## Design decisions
 
-1. **Кнопка "Домой"** — на макете появляется в одном месте рядом с логомаркой; считаю лишней. Если нужна навигация домой — правильнее сделать логомарку кликабельной. _Skipped._
-2. **Кнопка генерации** — лоадер показывался, но цвет не сигнализировал о блокировке. Добавил явный `disabled`-стейт во время генерации.
-3. **Transparent-кнопка** — стили для варианта `transparent` можно улучшить.
-4. Остальные решения продиктованы улучшением UX.
-
----
-
-## Решения по коду
-
-1. **Комментарии** — оставлены в приложении
-2. **Side effects в сторе** — для текущего этапа (браузер без бэкенда) некритично. При появлении сервера — заменить на `react-query` для управления серверным состоянием.
-3. **React Query** — одна мутация на все приложение, клиент не требует дополнительных настроек кэша, стейл тайма и т.д. На самой мутации _retry: false_ т.к. повторная генерация производится вручную. В случае ошибки в данном месте нужно дать пользователю понять, что произошло.
-4. **Storybook** — не добавлен сознательно: для данного размера проекта и одного разработчика затраты не оправданы. При росте команды — обязательно.
-5. **Тесты** — покрыт базовый минимум базового минимума, e2e отложены. Решение аналогично Storybook: время vs. польза на текущем этапе.
+1. **"Home" button** — shows up in one spot next to the logo in the mockup; I think it's redundant. If you need a way home, making the logo clickable is the better move. _Skipped._
+2. **Generate button** — the loader was there, but the color didn't really say "you can't click this." Added an explicit `disabled` state while generation is running.
+3. **Transparent button** — styles for the `transparent` variant could use some work.
+4. Everything else came down to making the UX a bit better.
 
 ---
 
-## Использование AI
+## Code decisions
 
-1. **Дизайн** — вставил стили страниц из фигмы в ИИ и попросил выявить повторяющиеся паттерны для создания дизайн системы. Потребовало аудита после получения результата и в процессе разработки. В целом результат приемлемый
-2. **Код** — обязательно создал файл .cursorrules.md, где на основании техзадания составил строгий "системный" промпт. Там несколько раз указал чтобы ИИ работал без галлюцинаций и придуманных методов, обрисовал строгие правила по архитектуре, инструментам, подходам к разработке. Правила сгенерировал с помощью ChatGPT. Работая над фичами макисмально возможно декомпозировал их, подробно описывал решение, АПИ, что хочу получить в итоге, при необходимости строго ограничивал контекст промптом, в особых случаях обсуждал решение и подходы. В случае простых багов говорил "делай хорошой, плохо не делай" (по смыслу), в случае чуть более сложных так же описывал решение, но без особых подробностей.
-3. **Форматирование README.md** — отдал ИИ
-4. **Тесты** — отдал ИИ
+1. **Comments** — left in the app on purpose
+2. **Side effects in the store** — not a big deal at this stage (browser-only, no backend). Once there's a server, swap this for `react-query` to handle server state.
+3. **React Query** — one mutation for the whole app; the client doesn't need extra cache config, stale time, and so on. The mutation itself has _retry: false_ because retries are manual. If something fails here, the user should actually understand what went wrong.
+4. **Storybook** — skipped on purpose: for a project this size and a solo dev, the cost isn't worth it. With a bigger team, I'd add it.
+5. **Tests** — covered the bare minimum of the bare minimum; e2e is on hold. Same logic as Storybook: time vs. value at this stage.
+
+---
+
+## AI usage (required section as per the task)
+
+1. **Design** — pasted page styles from Figma into AI and asked it to spot repeating patterns for a design system. Needed a review after the fact and again while building things out. Overall, good enough.
+2. **Code** — set up a `.cursorrules.md` file with a strict "system" prompt based on the spec. Repeatedly told the AI not to hallucinate or invent APIs, and laid out hard rules for architecture, tooling, and how to work. Generated those rules with ChatGPT. When building features, I broke them down as much as I could, spelled out the solution, the API, and what I wanted in the end; when needed, I locked down context with the prompt; for trickier stuff, I discussed the approach first. Simple bugs got a "just do it properly" kind of message; slightly harder ones got a solution outline without going into every detail.
+3. **README.md formatting** — handed off to AI
+4. **Tests** — handed off to AI

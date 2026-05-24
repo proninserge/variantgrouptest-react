@@ -1,15 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const markApplicationPending = vi.fn();
+const markApplicationGenerating = vi.fn();
 const updateApplication = vi.fn();
 const removeApplication = vi.fn();
+
+const applications = vi.hoisted((): Application[] => []);
 
 vi.mock('../model/store', () => ({
   useApplicationStore: {
     getState: () => ({
-      markApplicationPending,
+      markApplicationGenerating,
       updateApplication,
       removeApplication,
+      applications: applications,
     }),
   },
 }));
@@ -21,16 +24,16 @@ vi.mock('./channel', () => ({
   postDeleted: vi.fn(),
 }));
 
-import type { Application } from '../model/types';
+import type { Application, CompletedApplicationFields } from '../model/types';
 import {
   syncApplicationAsCancelled,
   syncApplicationAsDeleted,
-  syncApplicationAsPending,
+  syncApplicationAsGenerating,
   syncApplicationAsResolved,
 } from './applicationSync';
 import { postCancelled, postDeleted, postPending, postResolved } from './channel';
 
-const application: Application = {
+const applicationFields: CompletedApplicationFields = {
   id: '1',
   jobTitle: 'Engineer',
   companyName: 'Acme Corp',
@@ -39,25 +42,44 @@ const application: Application = {
   application: 'letter',
 };
 
+const resolvedApplication: Application = {
+  ...applicationFields,
+  generationStatus: 'idle',
+};
+
+const generatingApplication: Application = {
+  ...applicationFields,
+  application: null,
+  generationStatus: 'generating',
+};
+
 beforeEach(() => {
+  applications.length = 0;
   vi.clearAllMocks();
 });
 
 describe('applicationSync', () => {
-  it('syncApplicationAsPending updates the store and notifies other tabs', () => {
-    const pending = { ...application, application: null };
+  it('syncApplicationAsGenerating updates the store and broadcasts the normalized application', () => {
+    const generatingFields = { ...applicationFields, application: null };
+    markApplicationGenerating.mockImplementation(() => {
+      applications.push(generatingApplication);
+    });
 
-    syncApplicationAsPending(pending);
+    syncApplicationAsGenerating(generatingFields);
 
-    expect(markApplicationPending).toHaveBeenCalledWith(pending);
-    expect(postPending).toHaveBeenCalledWith(pending);
+    expect(markApplicationGenerating).toHaveBeenCalledWith(generatingFields);
+    expect(postPending).toHaveBeenCalledWith(generatingApplication);
   });
 
-  it('syncApplicationAsResolved updates the store and notifies other tabs', () => {
-    syncApplicationAsResolved(application);
+  it('syncApplicationAsResolved updates the store and broadcasts the normalized application', () => {
+    updateApplication.mockImplementation(() => {
+      applications.push(resolvedApplication);
+    });
 
-    expect(updateApplication).toHaveBeenCalledWith(application);
-    expect(postResolved).toHaveBeenCalledWith(application);
+    syncApplicationAsResolved(applicationFields);
+
+    expect(updateApplication).toHaveBeenCalledWith(applicationFields);
+    expect(postResolved).toHaveBeenCalledWith(resolvedApplication);
   });
 
   it('syncApplicationAsCancelled updates the store and notifies other tabs', () => {

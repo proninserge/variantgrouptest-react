@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 
-import { selectHasPending, useApplicationStore } from '@/entities/application';
+import { selectHasGeneratingApplication, useApplicationStore } from '@/entities/application';
 import { Anchors, RoutePaths } from '@/shared/config';
 import type { ButtonSize } from '@/shared/ui/button';
 import { Button } from '@/shared/ui/button';
@@ -24,7 +24,7 @@ export function CreateApplicationButton({
 }: CreateApplicationButtonProps): ReactElement {
   const navigate = useNavigate();
   const location = useLocation();
-  const isGenerating = useApplicationStore(selectHasPending);
+  const isGenerating = useApplicationStore(selectHasGeneratingApplication);
 
   const isOnCreatePage = location.pathname === RoutePaths.create;
 

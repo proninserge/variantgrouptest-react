@@ -5,7 +5,7 @@ import { ApplicationGenerationProvider } from './ApplicationGenerationProvider';
 import { ApplicationProvider } from './ApplicationProvider';
 import { UserProvider } from './UserProvider';
 
-// defaultOptions not needed for the current app
+// The defaultOptions config is not needed for the current app
 // Adding new queries, mutations will require updating the default options
 const queryClient = new QueryClient();
 

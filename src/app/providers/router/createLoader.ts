@@ -1,19 +1,15 @@
 import { redirect } from 'react-router';
 
-import { useApplicationStore } from '@/entities/application';
+import { selectHasGeneratingApplication, useApplicationStore } from '@/entities/application';
 import { RoutePaths } from '@/shared/config';
 
 /**
- * Blocks navigation to /create while any application is pending (application === null).
- * A pending entry is added synchronously in onMutate before the fetch starts,
- * so hasPending is true for the entire duration of a generation.
+ * Blocks navigation to /create while any application is being generated.
+ * A generating entry is added synchronously in onMutate before the fetch starts,
+ * so selectHasGeneratingApplication is true for the entire duration of a generation.
  */
 export function createRouteLoader() {
-  const hasPending = useApplicationStore
-    .getState()
-    .applications.some((a) => a.application === null);
-
-  if (hasPending) {
+  if (selectHasGeneratingApplication(useApplicationStore.getState())) {
     return redirect(RoutePaths.home);
   }
 
