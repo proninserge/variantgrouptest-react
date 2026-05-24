@@ -9,7 +9,7 @@ import {
 } from './predicates';
 import type { Application } from './types';
 
-const completedApplication: Application = {
+const completedApplication: Application & { application: string } = {
   id: '1',
   jobTitle: 'Engineer',
   companyName: 'Acme Corp',
